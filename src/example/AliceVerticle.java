@@ -1,4 +1,4 @@
-package maedn_server;
+package example;
 
 import java.util.TreeMap;
 

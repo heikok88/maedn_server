@@ -1,4 +1,4 @@
-package maedn_server;
+package example;
 
 import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.core.logging.Logger;
