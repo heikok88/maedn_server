@@ -10,7 +10,7 @@ public class MaednServer extends Verticle {
     public void start() {
         container.deployVerticle(WebSocket.class.getName());
         try {
-            Thread.sleep(1000);
+            Thread.sleep(500);
         } catch (InterruptedException ex) {
             Logger.getLogger(MaednServer.class.getName()).log(Level.SEVERE, null, ex);
         }

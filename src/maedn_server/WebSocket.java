@@ -8,7 +8,7 @@ import org.vertx.java.platform.Verticle;
 
 public class WebSocket extends Verticle {
 
-    private final int PORT = 8080;
+    private final int PORT = 8181;
 
     @Override
     public void start() {
