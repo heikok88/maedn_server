@@ -25,16 +25,24 @@ public class ServerMessages {
     public static Action<MatchUpdate> newMatchUpdateAction(String currentPlayerNickname, List<Figure> board) {
         return new Action<MatchUpdate>("matchUpdate", new MatchUpdate(currentPlayerNickname, board));
     }
-
-    private static Dice newDice(String nickname, int eyes) {
-        return new Dice(nickname, eyes);
-    }
     
+    public static Response<MatchUpdate> newMatchUpdateResponse(String currentPlayerNickname, List<Figure> board) {
+        return new Response<MatchUpdate>("matchUpdate", new MatchUpdate(currentPlayerNickname, board));
+    }
+
     public static Response<Dice> newRollDiceResponse(String nickname, int eyes) {
-        return new Response<Dice>("diceRolled", newDice(nickname, eyes));
+        return new Response<Dice>("diceRolled", new Dice(nickname, eyes));
     }
 
     public static Action<Dice> newRollDiceAction(String nickname, int eyes) {
-        return new Action<Dice>("diceRolled", newDice(nickname, eyes));
+        return new Action<Dice>("diceRolled", new Dice(nickname, eyes));
+    }
+    
+    public static Action<PlayerDone> newPlayerDoneAction(String nickname) {
+        return new Action<PlayerDone>("playerDone", new PlayerDone(nickname));
+    }
+    
+    public static Action<MatchDone> newPlayerDoneAction(List<String> nickname) {
+        return new Action<MatchDone>("diceRolled", new MatchDone(nickname));
     }
 }

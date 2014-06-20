@@ -10,16 +10,12 @@ public class CommonMessages {
         return new Response(response);
     }
 
-    private static TextMsg newTextMsg(String msg) {
-        return new TextMsg(msg);
-    }
-
     public static Action<TextMsg> newMsgAction(String action, String msg) {
-        return new Action<TextMsg>(action, newTextMsg(msg));
+        return new Action<TextMsg>(action, new TextMsg(msg));
     }
 
     public static Response<TextMsg> newMsgResponse(String response, String msg) {
-        return new Response<TextMsg>(response, newTextMsg(msg));
+        return new Response<TextMsg>(response, new TextMsg(msg));
     }
 
 }

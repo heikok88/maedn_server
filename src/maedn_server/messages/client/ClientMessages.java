@@ -10,12 +10,12 @@ public class ClientMessages {
         return new TypeToken<Response<Join>>() {
         }.getType();
     }
-    
+
     public static Type getCreateType() {
         return new TypeToken<Response<Create>>() {
         }.getType();
     }
-    
+
     public static Type getMoveType() {
         return new TypeToken<Response<Move>>() {
         }.getType();
