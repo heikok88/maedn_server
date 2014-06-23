@@ -1,8 +1,10 @@
 package maedn_server;
 
-import maedn_server.logic.Client;
 import maedn_server.logic.Foyer;
+import org.vertx.java.core.Handler;
+import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.http.HttpServer;
+import org.vertx.java.core.http.ServerWebSocket;
 import org.vertx.java.platform.Verticle;
 
 public class WebSocket extends Verticle {
@@ -12,10 +14,23 @@ public class WebSocket extends Verticle {
     @Override
     public void start() {
         Foyer foyer = new Foyer();
-        
+
         HttpServer server = vertx.createHttpServer();
         System.out.println("Server is listening on port " + PORT);
 
-        server.websocketHandler(new Client(foyer)).listen(PORT, "localhost");
+        server.websocketHandler(new Handler<ServerWebSocket>() {
+            Client client;
+
+            public void handle(ServerWebSocket ws) {
+                client = new Client(foyer, ws);
+                foyer.registerClient(client);
+
+                ws.dataHandler(new Handler<Buffer>() {
+                    public void handle(Buffer data) {
+                        client.receiveData(data.toString());
+                    }
+                });
+            }
+        }).listen(PORT, "localhost");
     }
 }

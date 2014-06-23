@@ -1,8 +1,8 @@
 package maedn_server.messages;
 
 public class Action<T> {
-    private final String action;
-    private final T payload;
+    public final String action;
+    public final T payload;
     
     public Action(String action) {
         this(action, null);

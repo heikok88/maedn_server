@@ -10,10 +10,12 @@ public class MaednServer extends Verticle {
     public void start() {
         container.deployVerticle(WebSocket.class.getName());
         try {
-            Thread.sleep(500);
+            for (int x = 0; x < 1; x++) {
+                Thread.sleep(500);
+                container.deployVerticle(WebSocketClient.class.getName());
+            }
         } catch (InterruptedException ex) {
             Logger.getLogger(MaednServer.class.getName()).log(Level.SEVERE, null, ex);
         }
-        container.deployVerticle(WebSocketClient.class.getName());
     }
 }

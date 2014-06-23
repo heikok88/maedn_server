@@ -1,14 +1,10 @@
 package maedn_server;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
-import maedn_server.messages.server.MatchNode;
-import maedn_server.messages.server.Matches;
-import maedn_server.messages.Response;
-import maedn_server.messages.server.ServerMessages;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import maedn_server.messages.Action;
+import maedn_server.messages.CommonMessages;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.http.HttpClient;
@@ -29,21 +25,20 @@ public class WebSocketClient extends Verticle {
                     @Override
                     public void handle(Buffer data) {
                         System.out.println("Received:  " + data);
-                        Type fooType = new TypeToken<Response<Matches>>(){}.getType();
-                        Response r = gs.fromJson(data.toString(), fooType);
-                        System.out.println("Converted: " + gs.toJson(r));
                     }
                 });
                 
-                List<MatchNode> matches = new ArrayList<>() ;
-                matches.add(new MatchNode(1, 42));
-                matches.add(new MatchNode(2, 24));
-                matches.add(new MatchNode(3, 124));
-                                
-                Response<Matches> rs = ServerMessages.newMatchesResponse(matches);
+                Action rs = CommonMessages.newSimpleAction("connect");
                 
-                System.out.println("Send:      " + gs.toJson(rs));
-                //Send some data
+                 ws.writeTextFrame(gs.toJson(rs));
+                 
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(WebSocketClient.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                
+                ws.writeTextFrame(gs.toJson(rs));
                 ws.writeTextFrame(gs.toJson(rs));
             }
         });
