@@ -1,5 +1,6 @@
 package maedn_server.logic;
 
+import com.google.gson.Gson;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
@@ -7,22 +8,26 @@ import java.util.Stack;
 import maedn_server.Client;
 import maedn_server.messages.Action;
 import maedn_server.messages.client.Create;
+import maedn_server.messages.server.GameParticipants;
 import maedn_server.messages.server.MatchNode;
 import maedn_server.messages.server.Player;
+import maedn_server.messages.server.ServerMessages;
 
 public class Room implements IState {
 
-    private static String[] colors = {"red" , "blue", "green", "yellow"};
+    private static String[] colors = {"red", "blue", "green", "yellow"};
     private final int id;
     private final Stack<Client> clients;
     private final Stack<Player> player;
     private final Foyer foyer;
+    private final Gson gson;
 
-    public Room(int id, Foyer foyer) {
+    public Room(int id, Foyer foyer, Gson gson) {
         this.id = id;
         this.foyer = foyer;
         this.clients = new Stack<>();
         this.player = new Stack<>();
+        this.gson = gson;
     }
 
     @Override
@@ -41,10 +46,15 @@ public class Room implements IState {
     }
 
     public void notifyPlayer() {
-        List<Client> l = new LinkedList<>();
+        List<Player> l = new LinkedList<>();
+        Enumeration<Player> p = player.elements();
+        while (p.hasMoreElements()) {
+            l.add(p.nextElement());
+        }
+        Action<GameParticipants> ac = ServerMessages.newClientsAction(id, l);
         Enumeration<Client> c = clients.elements();
         while (c.hasMoreElements()) {
-            // TODO
+            c.nextElement().sendData(gson.toJson(ac));
         }
     }
 

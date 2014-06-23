@@ -10,12 +10,12 @@ public class ServerMessages {
         return new Response<Matches>("matches", new Matches(matches));
     }
 
-    public static Response<GameClients> newClientsResponse(String response, int matchId, List<Player> clients) {
-        return new Response<GameClients>(response, new GameClients(matchId, clients));
+    public static Response<GameParticipants> newClientsResponse(String response, int matchId, List<Player> clients) {
+        return new Response<GameParticipants>(response, new GameParticipants(matchId, clients));
     }
 
-    public static Action<GameClients> newClientsAction(int matchId, List<Player> clients) {
-        return new Action<GameClients>("updatePlayers", new GameClients(matchId, clients));
+    public static Action<GameParticipants> newClientsAction(int matchId, List<Player> clients) {
+        return new Action<GameParticipants>("updatePlayers", new GameParticipants(matchId, clients));
     }
 
     public static Action<TimerStart> newTimerStartAction(int seconds) {
