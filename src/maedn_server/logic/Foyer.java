@@ -4,22 +4,29 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import maedn_server.Client;
 import maedn_server.messages.Action;
 import maedn_server.messages.CommonMessages;
 import maedn_server.messages.client.ClientMessages;
-import maedn_server.messages.client.Join;
 import maedn_server.messages.client.Create;
+import maedn_server.messages.client.Join;
+import maedn_server.messages.server.MatchNode;
+import maedn_server.messages.server.ServerMessages;
 
 public class Foyer implements IState {
 
     private class Connected {
         private boolean connected = false;
     }
-
-    private final HashMap<Client, Connected> clients = new HashMap<>();
+    
     private final Gson gson = new Gson();
+    private final HashMap<Client, Connected> clients = new HashMap<>();
+    private final TreeMap<Integer, Room> rooms = new TreeMap<>();
+    private int cnt = 0;
 
     private void handleConnect(Client client) {
         Connected con = clients.get(client);
@@ -33,7 +40,11 @@ public class Foyer implements IState {
     }
 
     private void handleGetMatches(Client client) {
-        System.out.println("client get matches");
+        List<MatchNode> matches = new LinkedList<>();
+        for (Map.Entry<Integer, Room> r : rooms.entrySet()) {
+            matches.add(r.getValue().getMatchNode());
+        }
+        client.sendData(gson.toJson(ServerMessages.newMatchesResponse(matches)));
     }
 
     private void handleJoin(Client client, Action<Join> join) {

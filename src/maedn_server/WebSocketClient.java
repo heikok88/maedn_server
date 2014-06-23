@@ -20,29 +20,23 @@ public class WebSocketClient extends Verticle {
         client.connectWebsocket("", new Handler<WebSocket>() {
             public void handle(WebSocket ws) {
                 Gson gs = new Gson();
-                
+
                 ws.dataHandler(new Handler<Buffer>() {
                     @Override
                     public void handle(Buffer data) {
                         System.out.println("Received:  " + data);
                     }
                 });
-                
+
                 Action rs = CommonMessages.newSimpleAction("connect");
-                
-                 ws.writeTextFrame(gs.toJson(rs));
-                 
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(WebSocketClient.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                
+
                 ws.writeTextFrame(gs.toJson(rs));
+
+                rs = CommonMessages.newSimpleAction("getMatches");
+                
                 ws.writeTextFrame(gs.toJson(rs));
             }
         });
     }
-    
-    
+
 }

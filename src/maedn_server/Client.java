@@ -23,6 +23,7 @@ public class Client  {
     }
     
     public void receiveData(String data) {
+        System.out.println("Send: " + data); // TODO: remove, only for debugging
         state.reveiceData(this, data);
     }
     
