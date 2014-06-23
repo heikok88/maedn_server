@@ -56,7 +56,8 @@ public class Foyer implements IState {
         rooms.put(cnt++, r);
         r.addPlayer(client, create);
         client.setLogic(r);
-        r.notifyPlayer();
+        r.notifyPlayer(client);
+        r.notifyAllPlayer(client);
     }
 
     public void registerClient(Client client) {
@@ -65,7 +66,6 @@ public class Foyer implements IState {
 
     @Override
     public void reveiceData(Client client, String json) {
-        System.out.println("Blaaaaaaaaaaaaaaaaa: " + json);
         if (isAction(json)) {
             Action action = gson.fromJson(json, Action.class);
             switch (action.action) {

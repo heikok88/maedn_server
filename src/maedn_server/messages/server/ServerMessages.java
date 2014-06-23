@@ -14,8 +14,12 @@ public class ServerMessages {
         return new Response<GameParticipants>(response, new GameParticipants(matchId, clients));
     }
 
-    public static Action<GameParticipants> newClientsAction(int matchId, List<Player> clients) {
+    public static Action<GameParticipants> newUpdatePlayersAction(int matchId, List<Player> clients) {
         return new Action<GameParticipants>("updatePlayers", new GameParticipants(matchId, clients));
+    }
+    
+    public static Response<GameParticipants> newUpdatePlayersResponse(int matchId, List<Player> clients) {
+        return new Response<GameParticipants>("joined", new GameParticipants(matchId, clients));
     }
 
     public static Action<TimerStart> newTimerStartAction(int seconds) {

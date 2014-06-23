@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Stack;
 import maedn_server.Client;
 import maedn_server.messages.Action;
+import maedn_server.messages.Response;
 import maedn_server.messages.client.Create;
 import maedn_server.messages.server.GameParticipants;
 import maedn_server.messages.server.MatchNode;
@@ -45,17 +46,31 @@ public class Room implements IState {
         return ret;
     }
 
-    public void notifyPlayer() {
+    private List<Player> getPlayersList() {
         List<Player> l = new LinkedList<>();
         Enumeration<Player> p = player.elements();
         while (p.hasMoreElements()) {
             l.add(p.nextElement());
         }
-        Action<GameParticipants> ac = ServerMessages.newClientsAction(id, l);
+        return l;
+    }
+
+    public void notifyAllPlayer(Client client) {
+        Action<GameParticipants> ac = ServerMessages.newUpdatePlayersAction(
+                id, getPlayersList());
         Enumeration<Client> c = clients.elements();
         while (c.hasMoreElements()) {
-            c.nextElement().sendData(gson.toJson(ac));
+            Client cl = c.nextElement();
+            if (cl != client) {
+                cl.sendData(gson.toJson(ac));
+            }
         }
+    }
+
+    public void notifyPlayer(Client client) {
+        Response<GameParticipants> rs = ServerMessages.newUpdatePlayersResponse(
+                id, getPlayersList());
+        client.sendData(gson.toJson(rs));
     }
 
     public MatchNode getMatchNode() {
