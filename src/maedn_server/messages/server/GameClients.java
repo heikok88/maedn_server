@@ -5,9 +5,9 @@ import java.util.List;
 public class GameClients {
 
     private final int matchId;
-    private final List<Client> clients;
+    private final List<Player> clients;
 
-    public GameClients(int matchId, List<Client> clients) {
+    public GameClients(int matchId, List<Player> clients) {
         this.matchId = matchId;
         this.clients = clients;
     }

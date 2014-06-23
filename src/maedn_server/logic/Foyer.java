@@ -23,6 +23,14 @@ public class Foyer implements IState {
         private boolean connected = false;
     }
     
+    public Foyer() {
+        Room r = new Room(cnt, this);
+        rooms.put(cnt++, r);
+        r.addPlayer(new Client(this, null), new Action<Create>("create", new Create("peter")));
+        r.addPlayer(new Client(this, null), new Action<Create>("create", new Create("hans")));
+        r.addPlayer(new Client(this, null), new Action<Create>("create", new Create("paul")));
+    }
+    
     private final Gson gson = new Gson();
     private final HashMap<Client, Connected> clients = new HashMap<>();
     private final TreeMap<Integer, Room> rooms = new TreeMap<>();
@@ -52,7 +60,11 @@ public class Foyer implements IState {
     }
 
     private void handleCreate(Client client, Action<Create> create) {
-        System.out.println("client create game: " + create.payload.nickname);
+        Room r = new Room(cnt, this);
+        rooms.put(cnt++, r);
+        r.addPlayer(client, create);
+        client.setLogic(r);
+        r.notifyPlayer();
     }
 
     public void registerClient(Client client) {
@@ -61,6 +73,7 @@ public class Foyer implements IState {
 
     @Override
     public void reveiceData(Client client, String json) {
+        System.out.println("Blaaaaaaaaaaaaaaaaa: " + json);
         if (isAction(json)) {
             Action action = gson.fromJson(json, Action.class);
             switch (action.action) {
@@ -94,7 +107,7 @@ public class Foyer implements IState {
     }
 
     private boolean isMsgType(String json, String msgType) {
-        Type type = new TypeToken<Map<String, String>>() {
+        Type type = new TypeToken<Map<String, Object>>() {
         }.getType();
         Map<String, String> map = gson.fromJson(json, type);
         return (map.get(msgType) != null);

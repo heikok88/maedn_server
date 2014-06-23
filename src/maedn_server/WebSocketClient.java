@@ -5,6 +5,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import maedn_server.messages.Action;
 import maedn_server.messages.CommonMessages;
+import maedn_server.messages.client.Create;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.http.HttpClient;
@@ -28,12 +29,14 @@ public class WebSocketClient extends Verticle {
                     }
                 });
 
-                Action rs = CommonMessages.newSimpleAction("connect");
+                Action rs;
+//                rs = CommonMessages.newSimpleAction("connect");
+//                ws.writeTextFrame(gs.toJson(rs));
 
-                ws.writeTextFrame(gs.toJson(rs));
-
-                rs = CommonMessages.newSimpleAction("getMatches");
+                //                rs = CommonMessages.newSimpleAction("getMatches");
+                //                ws.writeTextFrame(gs.toJson(rs));
                 
+                rs = new Action<Create>("create", new Create("heiko"));
                 ws.writeTextFrame(gs.toJson(rs));
             }
         });

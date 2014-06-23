@@ -10,11 +10,11 @@ public class ServerMessages {
         return new Response<Matches>("matches", new Matches(matches));
     }
 
-    public static Response<GameClients> newClientsResponse(String response, int matchId, List<Client> clients) {
+    public static Response<GameClients> newClientsResponse(String response, int matchId, List<Player> clients) {
         return new Response<GameClients>(response, new GameClients(matchId, clients));
     }
 
-    public static Action<GameClients> newClientsAction(int matchId, List<Client> clients) {
+    public static Action<GameClients> newClientsAction(int matchId, List<Player> clients) {
         return new Action<GameClients>("updatePlayers", new GameClients(matchId, clients));
     }
 

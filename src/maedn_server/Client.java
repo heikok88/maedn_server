@@ -6,7 +6,6 @@ import org.vertx.java.core.http.ServerWebSocket;
 public class Client  {
 
     private IState state;
-    private String nickname = "";
     private final ServerWebSocket ws;
 
     public Client(IState state, ServerWebSocket ws) {
@@ -14,14 +13,6 @@ public class Client  {
         this.ws = ws;
     }
 
-    public String getNickname() {
-        return nickname;
-    }
-
-    public void setNickname(String nickname) {
-        this.nickname = nickname;
-    }
-    
     public void receiveData(String data) {
         System.out.println("Send: " + data); // TODO: remove, only for debugging
         state.reveiceData(this, data);
