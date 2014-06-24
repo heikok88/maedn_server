@@ -11,11 +11,11 @@ public class CommonMessages {
     }
 
     public static Action<TextMsg> newMsgAction(String action, String msg) {
-        return new Action<TextMsg>(action, new TextMsg(msg));
+        return new Action<>(action, new TextMsg(msg));
     }
 
     public static Response<TextMsg> newMsgResponse(String response, String msg) {
-        return new Response<TextMsg>(response, new TextMsg(msg));
+        return new Response<>(response, new TextMsg(msg));
     }
 
 }

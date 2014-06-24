@@ -1,6 +1,5 @@
 package maedn_server.logic;
 
-import com.google.gson.Gson;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
@@ -8,32 +7,24 @@ import java.util.Stack;
 import maedn_server.Client;
 import maedn_server.messages.Action;
 import maedn_server.messages.Response;
-import maedn_server.messages.client.Create;
 import maedn_server.messages.server.GameParticipants;
 import maedn_server.messages.server.MatchNode;
 import maedn_server.messages.server.Player;
 import maedn_server.messages.server.ServerMessages;
 
-public class Room implements IState {
+public class Room extends WebsocketReceiver {
 
     private static String[] colors = {"red", "blue", "green", "yellow"};
     private final int id;
     private final Stack<Client> clients;
     private final Stack<Player> player;
     private final Foyer foyer;
-    private final Gson gson;
 
-    public Room(int id, Foyer foyer, Gson gson) {
+    public Room(int id, Foyer foyer) {
         this.id = id;
         this.foyer = foyer;
         this.clients = new Stack<>();
         this.player = new Stack<>();
-        this.gson = gson;
-    }
-
-    @Override
-    public void reveiceData(Client client, String json) {
-
     }
 
     public boolean isFull() {
@@ -62,15 +53,12 @@ public class Room implements IState {
         return ret;
     }
 
-    private List<Player> getPlayersList() {
-        List<Player> l = new LinkedList<>();
-        Enumeration<Player> p = player.elements();
-        while (p.hasMoreElements()) {
-            l.add(p.nextElement());
-        }
-        return l;
+    public void notifyPlayer(Client client) {
+        Response<GameParticipants> rs = ServerMessages.newJoinedResponse(
+                id, getPlayersList());
+        client.sendData(gson.toJson(rs));
     }
-
+    
     public void notifyAllPlayer(Client client) {
         Action<GameParticipants> ac = ServerMessages.newUpdatePlayersAction(
                 id, getPlayersList());
@@ -83,14 +71,22 @@ public class Room implements IState {
         }
     }
 
-    public void notifyPlayer(Client client) {
-        Response<GameParticipants> rs = ServerMessages.newUpdatePlayersResponse(
-                id, getPlayersList());
-        client.sendData(gson.toJson(rs));
+    private List<Player> getPlayersList() {
+        List<Player> l = new LinkedList<>();
+        Enumeration<Player> p = player.elements();
+        while (p.hasMoreElements()) {
+            l.add(p.nextElement());
+        }
+        return l;
     }
 
     public MatchNode getMatchNode() {
         return new MatchNode(id, clients.size());
+    }
+    
+    @Override
+    public void reveiceData(Client client, String json) {
+
     }
 
 }
