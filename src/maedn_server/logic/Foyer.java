@@ -27,7 +27,9 @@ public class Foyer extends WebsocketReceiver {
     }
     
     private class Connected {
-
+        private Connected(boolean con) {
+            this.connected = con;
+        }
         private boolean connected = false;
     }
 
@@ -43,7 +45,15 @@ public class Foyer extends WebsocketReceiver {
     }
 
     public void registerClient(Client client) {
-        clients.put(client, new Connected());
+        registerClient(client, false);
+    }
+    
+    public void registerClient(Client client, boolean connected) {
+        clients.put(client, new Connected(connected));
+    }
+    
+    public void deregisterClient(Client client) {
+        clients.remove(client);
     }
 
     @Override
@@ -102,6 +112,7 @@ public class Foyer extends WebsocketReceiver {
             if (!r.isFull()) {
                 if (r.isNicknameOk(join.payload.nickname)) {
                     addClientToRoom(client, r, join.payload.nickname);
+                    deregisterClient(client);
                 } else {
                     // nickname in use
                     client.sendData(gson.toJson(
@@ -125,6 +136,7 @@ public class Foyer extends WebsocketReceiver {
     private void handleCreate(Client client, Action<Create> create) {
         Room r = new Room(cnt);
         addClientToRoom(client, r, create.payload.nickname);
+        deregisterClient(client);
     }
 
     private void addClientToRoom(Client client, Room r, String nickname) {

@@ -14,7 +14,7 @@ import maedn_server.messages.server.ServerMessages;
 
 public class Room extends WebsocketReceiver {
 
-    private static String[] colors = {"red", "blue", "green", "yellow"};
+    private final static String[] colors = {"red", "blue", "green", "yellow"};
     private final int id;
     private final Stack<Client> clients;
     private final Stack<Player> player;
