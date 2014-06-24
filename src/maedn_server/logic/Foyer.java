@@ -17,6 +17,15 @@ import maedn_server.messages.server.ServerMessages;
 
 public class Foyer extends WebsocketReceiver {
 
+    private static Foyer singleton;
+
+    public static Foyer getFoyerInstance() {
+        if (singleton == null) {
+            singleton = new Foyer();
+        }
+        return singleton;
+    }
+    
     private class Connected {
 
         private boolean connected = false;
@@ -31,15 +40,6 @@ public class Foyer extends WebsocketReceiver {
         rooms.put(cnt, r);
         r.addPlayer(new Client(r, null), "hans");
         r.addPlayer(new Client(r, null), "heiko");
-    }
-
-    private static Foyer singleton;
-
-    public static Foyer getFoyerInstance() {
-        if (singleton == null) {
-            singleton = new Foyer();
-        }
-        return singleton;
     }
 
     public void registerClient(Client client) {

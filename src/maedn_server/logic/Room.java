@@ -107,11 +107,11 @@ public class Room extends WebsocketReceiver {
     }
 
     private void handleLeave(Client client) {
-
+        // TODO
     }
 
     private void handleReady(Client client) {
-
+        // TODO
     }
 }
 
