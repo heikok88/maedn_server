@@ -13,7 +13,7 @@ public class WebSocket extends Verticle {
 
     @Override
     public void start() {
-        Foyer foyer = new Foyer();
+        Foyer foyer = Foyer.getFoyerInstance();
 
         HttpServer server = vertx.createHttpServer();
         System.out.println("Server is listening on port " + PORT);

@@ -18,11 +18,9 @@ public class Room extends WebsocketReceiver {
     private final int id;
     private final Stack<Client> clients;
     private final Stack<Player> player;
-    private final Foyer foyer;
 
-    public Room(int id, Foyer foyer) {
+    public Room(int id) {
         this.id = id;
-        this.foyer = foyer;
         this.clients = new Stack<>();
         this.player = new Stack<>();
     }
@@ -58,7 +56,7 @@ public class Room extends WebsocketReceiver {
                 id, getPlayersList());
         client.sendData(gson.toJson(rs));
     }
-    
+
     public void notifyAllPlayer(Client client) {
         Action<GameParticipants> ac = ServerMessages.newUpdatePlayersAction(
                 id, getPlayersList());
@@ -83,10 +81,37 @@ public class Room extends WebsocketReceiver {
     public MatchNode getMatchNode() {
         return new MatchNode(id, clients.size());
     }
-    
+
     @Override
     public void reveiceData(Client client, String json) {
+        if (isAction(json)) {
+            Action action = gson.fromJson(json, Action.class);
+            switch (action.action) {
+                case "leave":
+                    handleLeave(client);
+                    break;
+                case "ready":
+                    handleReady(client);
+                    break;
+                default:
+                    // TODO: handle forbidden json object
+            }
+        } else if (isResponse(json)) {
+            // TODO
+            Response response = gson.fromJson(json, Response.class);
+            switch (response.response) {
+                default:
+                    // TODO: handle forbidden json object
+            }
+        }
+    }
+
+    private void handleLeave(Client client) {
 
     }
 
+    private void handleReady(Client client) {
+
+    }
 }
+

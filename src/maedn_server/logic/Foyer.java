@@ -8,6 +8,7 @@ import java.util.TreeMap;
 import maedn_server.Client;
 import maedn_server.messages.Action;
 import maedn_server.messages.CommonMessages;
+import maedn_server.messages.Response;
 import maedn_server.messages.client.ClientMessages;
 import maedn_server.messages.client.Create;
 import maedn_server.messages.client.Join;
@@ -17,19 +18,29 @@ import maedn_server.messages.server.ServerMessages;
 public class Foyer extends WebsocketReceiver {
 
     private class Connected {
-        private boolean connected = false;
-    }
 
-    public Foyer() {
-        Room r = new Room(cnt, this);
-        rooms.put(cnt, r);
-        r.addPlayer(new Client(r, null), "hans");
-        r.addPlayer(new Client(r, null), "heiko");
+        private boolean connected = false;
     }
 
     private final HashMap<Client, Connected> clients = new HashMap<>();
     private final TreeMap<Integer, Room> rooms = new TreeMap<>();
     private int cnt = 0;
+
+    private Foyer() {
+        Room r = new Room(cnt);
+        rooms.put(cnt, r);
+        r.addPlayer(new Client(r, null), "hans");
+        r.addPlayer(new Client(r, null), "heiko");
+    }
+
+    private static Foyer singleton;
+
+    public static Foyer getFoyerInstance() {
+        if (singleton == null) {
+            singleton = new Foyer();
+        }
+        return singleton;
+    }
 
     public void registerClient(Client client) {
         clients.put(client, new Connected());
@@ -53,12 +64,17 @@ public class Foyer extends WebsocketReceiver {
                     handleCreate(client, gson.fromJson(json, ClientMessages.getCreateType()));
                     break;
                 default:
+                // TODO: handle forbidden json object
             }
-        } else {
-            if (isResponse(json)) {
-
+        } else if (isResponse(json)) {
+            // TODO
+            Response response = gson.fromJson(json, Response.class);
+            switch (response.response) {
+                default:
+                // TODO: handle forbidden json object
             }
         }
+
     }
 
     private void handleConnect(Client client) {
@@ -107,7 +123,7 @@ public class Foyer extends WebsocketReceiver {
     }
 
     private void handleCreate(Client client, Action<Create> create) {
-        Room r = new Room(cnt, this);
+        Room r = new Room(cnt);
         addClientToRoom(client, r, create.payload.nickname);
     }
 
