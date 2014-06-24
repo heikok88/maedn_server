@@ -90,11 +90,10 @@ public class Foyer extends WebsocketReceiver {
     private void handleConnect(Client client) {
         Connected con = clients.get(client);
         if (!con.connected) {
-            System.out.println("not connected"); // TODO: remove, only for debugging
             con.connected = true;
             client.sendData(gson.toJson(CommonMessages.newSimpleResponse("connected")));
         } else {
-            System.out.println("already connected"); // TODO: remove, only for debugging
+            // TODO
         }
     }
 

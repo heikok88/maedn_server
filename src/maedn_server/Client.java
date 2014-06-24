@@ -14,11 +14,12 @@ public class Client  {
     }
 
     public void receiveData(String data) {
-        System.out.println("Send: " + data); // TODO: remove, only for debugging
+        System.out.println("Client send: " + data); // TODO: remove, only for debugging
         receiver.reveiceData(this, data);
     }
     
     public void sendData(String data) {
+        System.out.println("Server send: " + data); // TODO: remove, only for debugging
         ws.writeTextFrame(data);
     }
     
