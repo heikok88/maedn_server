@@ -23,6 +23,13 @@ public class Foyer implements IState {
         private boolean connected = false;
     }
     
+    public Foyer() {
+        Room r = new Room(cnt, this, gson);
+        rooms.put(cnt, r);
+        r.addPlayer(new Client(r, null), "hans");
+        r.addPlayer(new Client(r, null), "heiko");
+    }
+
     private final Gson gson = new Gson();
     private final HashMap<Client, Connected> clients = new HashMap<>();
     private final TreeMap<Integer, Room> rooms = new TreeMap<>();
@@ -47,17 +54,43 @@ public class Foyer implements IState {
         client.sendData(gson.toJson(ServerMessages.newMatchesResponse(matches)));
     }
 
+    private void addClientToRoom(Client client, Room r, String nickname) {
+        rooms.put(cnt++, r);
+        r.addPlayer(client, nickname);
+        client.setLogic(r);
+        r.notifyPlayer(client);
+        r.notifyAllPlayer(client);
+    }
+
     private void handleJoin(Client client, Action<Join> join) {
-        System.out.println("client joins game: " + join.payload.matchId + " " + join.payload.nickname);
+        Room r = rooms.get(join.payload.matchId);
+        if (r != null) {
+            if (!r.isFull()) {
+                if (r.isNicknameOk(join.payload.nickname)) {
+                    addClientToRoom(client, r, join.payload.nickname);
+                } else {
+                    // nickname in use
+                    client.sendData(gson.toJson(
+                            CommonMessages.newMsgResponse("error",
+                                    "Nickname already in use!")));
+                }
+            } else {
+                // game is full
+                client.sendData(gson.toJson(
+                        CommonMessages.newMsgResponse("error",
+                                "Match is full!")));
+            }
+        } else {
+            // game noch available
+            client.sendData(gson.toJson(
+                    CommonMessages.newMsgResponse("error",
+                            "Match does not exist!")));
+        }
     }
 
     private void handleCreate(Client client, Action<Create> create) {
         Room r = new Room(cnt, this, gson);
-        rooms.put(cnt++, r);
-        r.addPlayer(client, create);
-        client.setLogic(r);
-        r.notifyPlayer(client);
-        r.notifyAllPlayer(client);
+        addClientToRoom(client, r, create.payload.nickname);
     }
 
     public void registerClient(Client client) {

@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 import maedn_server.messages.Action;
 import maedn_server.messages.CommonMessages;
 import maedn_server.messages.client.Create;
+import maedn_server.messages.client.Join;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.http.HttpClient;
@@ -36,7 +37,7 @@ public class WebSocketClient extends Verticle {
                 //                rs = CommonMessages.newSimpleAction("getMatches");
                 //                ws.writeTextFrame(gs.toJson(rs));
                 
-                rs = new Action<Create>("create", new Create("heiko"));
+                rs = new Action<Join>("join", new Join(0, "heiko"));
                 ws.writeTextFrame(gs.toJson(rs));
             }
         });

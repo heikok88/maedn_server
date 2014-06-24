@@ -36,12 +36,28 @@ public class Room implements IState {
 
     }
 
-    public boolean addPlayer(Client client, Action<Create> create) {
+    public boolean isFull() {
+        return (clients.size() >= 4);
+    }
+
+    public boolean isNicknameOk(String nickname) {
+        Enumeration<Player> p = player.elements();
+        while (p.hasMoreElements()) {
+            Player pl = p.nextElement();
+            if (pl.nickname.equals(nickname)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean addPlayer(Client client, String nickname) {
         boolean ret = false;
         if (clients.size() < 4) {
+            ret = true;
             clients.push(client);
             client.setLogic(this);
-            player.push(new Player(create.payload.nickname, colors[player.size()]));
+            player.push(new Player(nickname, colors[player.size()]));
         }
         return ret;
     }
