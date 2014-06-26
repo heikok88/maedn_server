@@ -18,6 +18,10 @@ public class ServerMessages {
         return new Action<>("updatePlayers", new GameParticipants(matchId, clients));
     }
     
+    public static Response<GameParticipants> newUpdatePlayersResponse(int matchId, List<Player> clients) {
+        return new Response<>("updatePlayers", new GameParticipants(matchId, clients));
+    }
+    
     public static Response<GameParticipants> newJoinedResponse(int matchId, List<Player> clients) {
         return new Response<>("joined", new GameParticipants(matchId, clients));
     }

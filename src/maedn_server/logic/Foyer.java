@@ -142,7 +142,7 @@ public class Foyer extends WebsocketReceiver {
         rooms.put(cnt++, r);
         r.addPlayer(client, nickname);
         client.setLogic(r);
-        r.notifyPlayer(client);
+        r.notifyJoinedPlayer(client);
         r.notifyAllPlayer(client);
     }
 
