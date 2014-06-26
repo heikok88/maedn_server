@@ -66,8 +66,17 @@ public class Room extends WebsocketReceiver {
     }
 
     private void removePlayer(Client client) {
-        // TODO
-        timerLogic();
+        int index = clients.indexOf(client);
+        if (index != -1) {
+            clients.remove(index);
+            player.remove(index);
+            if (clients.size() > 0) {
+                timerLogic();
+            } else {
+                Foyer.getFoyerInstance().removeRoom(this);
+            }
+
+        }
     }
 
     public void notifyJoinedPlayer(Client client) {
@@ -152,9 +161,13 @@ public class Room extends WebsocketReceiver {
     }
 
     private void handleReady(Client client) {
-        notifyPlayer(client);
-        notifyAllPlayer(client);
-        timerLogic();
+        int index = clients.indexOf(client);
+        if (index != -1) {
+            player.get(index).ready = true;
+            notifyPlayer(client);
+            notifyAllPlayer(client);
+            timerLogic();
+        }
     }
 
     private void timerLogic() {

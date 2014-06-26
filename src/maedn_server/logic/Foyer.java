@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import maedn_server.Client;
 import maedn_server.messages.Action;
@@ -55,6 +56,17 @@ public class Foyer extends WebsocketReceiver {
     
     public void deregisterClient(Client client) {
         clients.remove(client);
+    }
+    
+    public void removeRoom(Room r) {
+        for (Map.Entry<Integer, Room> entry : rooms.entrySet()) {
+            if (entry.getValue() == r) {
+                rooms.remove(entry.getKey());
+                r = null;
+                break;
+            }
+        }
+        
     }
 
     @Override
@@ -135,12 +147,12 @@ public class Foyer extends WebsocketReceiver {
 
     private void handleCreate(Client client, Action<Create> create) {
         Room r = new Room(cnt);
+        rooms.put(cnt++, r);
         addClientToRoom(client, r, create.payload.nickname);
         deregisterClient(client);
     }
 
     private void addClientToRoom(Client client, Room r, String nickname) {
-        rooms.put(cnt++, r);
         r.addPlayer(client, nickname);
         r.notifyJoinedPlayer(client);
         r.notifyAllPlayer(client);
