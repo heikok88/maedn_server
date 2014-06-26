@@ -19,13 +19,14 @@ public class WebSocket extends Verticle {
         System.out.println("Server is listening on port " + PORT);
 
         server.websocketHandler(new Handler<ServerWebSocket>() {
-            Client client;
 
+            @Override
             public void handle(ServerWebSocket ws) {
-                client = new Client(ws);
+                Client client = new Client(ws);
                 foyer.registerClient(client);
 
                 ws.dataHandler(new Handler<Buffer>() {
+                    @Override
                     public void handle(Buffer data) {
                         client.receiveData(data.toString());
                     }

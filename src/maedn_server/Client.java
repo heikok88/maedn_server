@@ -16,15 +16,19 @@ public class Client {
     }
 
     public void receiveData(String data) {
-        System.out.println("Client send (" + me + "): " + data); // TODO: remove, only for debugging
+        System.out.println("Client send (" + me + " - " + ws +"): " + data); // TODO: remove, only for debugging
         if (receiver != null) {
             receiver.reveiceData(this, data);
         }
     }
 
     public void sendData(String data) {
-        System.out.println("Server send (" + me + "): " + data); // TODO: remove, only for debugging
-        ws.writeTextFrame(data);
+        try {
+            ws.writeTextFrame(data);
+            System.out.println("Server send (" + me + " - " + ws +"): " + data); // TODO: remove, only for debugging
+        } catch (Exception ex) {
+            System.err.println(ex);
+        }
     }
 
     public void setReceiver(WebsocketReceiver receiver) {

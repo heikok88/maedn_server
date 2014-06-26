@@ -31,7 +31,7 @@ public class Foyer extends WebsocketReceiver {
         private Connected(boolean con) {
             this.connected = con;
         }
-        private boolean connected = false;
+        private boolean connected;
     }
 
     private final HashMap<Client, Connected> clients = new HashMap<>();
