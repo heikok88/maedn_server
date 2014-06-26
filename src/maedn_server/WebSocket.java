@@ -22,7 +22,7 @@ public class WebSocket extends Verticle {
             Client client;
 
             public void handle(ServerWebSocket ws) {
-                client = new Client(foyer, ws);
+                client = new Client(ws);
                 foyer.registerClient(client);
 
                 ws.dataHandler(new Handler<Buffer>() {

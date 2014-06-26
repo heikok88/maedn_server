@@ -38,10 +38,10 @@ public class Foyer extends WebsocketReceiver {
     private int cnt = 0;
 
     private Foyer() {
-        Room r = new Room(cnt);
-        rooms.put(cnt, r);
-        r.addPlayer(new Client(r, null), "hans");
-        r.addPlayer(new Client(r, null), "heiko");
+//        Room r = new Room(cnt);
+//        rooms.put(cnt, r);
+//        r.addPlayer(new Client(null), "hans");
+//        r.addPlayer(new Client(null), "heiko");
     }
 
     public void registerClient(Client client) {
@@ -50,6 +50,7 @@ public class Foyer extends WebsocketReceiver {
     
     public void registerClient(Client client, boolean connected) {
         clients.put(client, new Connected(connected));
+        client.setReceiver(this);
     }
     
     public void deregisterClient(Client client) {
@@ -141,7 +142,6 @@ public class Foyer extends WebsocketReceiver {
     private void addClientToRoom(Client client, Room r, String nickname) {
         rooms.put(cnt++, r);
         r.addPlayer(client, nickname);
-        client.setLogic(r);
         r.notifyJoinedPlayer(client);
         r.notifyAllPlayer(client);
     }

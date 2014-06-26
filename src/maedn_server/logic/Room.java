@@ -58,7 +58,7 @@ public class Room extends WebsocketReceiver {
         if (clients.size() < 4) {
             ret = true;
             clients.push(client);
-            client.setLogic(this);
+            client.setReceiver(this);
             player.push(new Player(nickname, colors[player.size()]));
             timerLogic();
         }
@@ -146,7 +146,6 @@ public class Room extends WebsocketReceiver {
     private void handleLeave(Client client) {
         Foyer f = Foyer.getFoyerInstance();
         this.removePlayer(client);
-        client.setLogic(f);
         f.registerClient(client, true);
         client.sendData(gson.toJson(CommonMessages.newSimpleResponse("left")));
         notifyAllPlayer();
@@ -194,12 +193,15 @@ public class Room extends WebsocketReceiver {
     }
 
     private void stopTimer() {
-        timer.cancel();
-        timer = null;
-        sendToAllPlayer(CommonMessages.newSimpleAction("timerAbort"));
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
+            sendToAllPlayer(CommonMessages.newSimpleAction("timerAbort"));
+        }
     }
 
     private void startGame() {
-        // TODO
+        timer = null;
+        System.out.println("Game started"); // TODO
     }
 }
