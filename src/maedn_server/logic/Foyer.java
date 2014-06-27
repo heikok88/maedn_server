@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import maedn_server.Client;
 import maedn_server.messages.Action;
@@ -56,6 +55,10 @@ public class Foyer extends WebsocketReceiver {
     
     public void deregisterClient(Client client) {
         clients.remove(client);
+    }
+    
+    public void addRoom(Room r) {
+        rooms.put(cnt++, r);
     }
     
     public void removeRoom(Room r) {
@@ -147,7 +150,7 @@ public class Foyer extends WebsocketReceiver {
 
     private void handleCreate(Client client, Action<Create> create) {
         Room r = new Room(cnt);
-        rooms.put(cnt++, r);
+        addRoom(r);
         addClientToRoom(client, r, create.payload.nickname);
         deregisterClient(client);
     }

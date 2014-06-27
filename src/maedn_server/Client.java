@@ -16,7 +16,7 @@ public class Client {
     }
 
     public void receiveData(String data) {
-        System.out.println("Client send (" + me + " - " + ws +"): " + data); // TODO: remove, only for debugging
+        System.out.println("Client send (" + me + "): " + data); // TODO: remove, only for debugging
         if (receiver != null) {
             receiver.reveiceData(this, data);
         }
@@ -25,7 +25,7 @@ public class Client {
     public void sendData(String data) {
         try {
             ws.writeTextFrame(data);
-            System.out.println("Server send (" + me + " - " + ws +"): " + data); // TODO: remove, only for debugging
+            System.out.println("Server send (" + me + "): " + data); // TODO: remove, only for debugging
         } catch (Exception ex) {
             System.err.println(ex);
         }

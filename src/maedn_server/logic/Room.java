@@ -171,10 +171,10 @@ public class Room extends WebsocketReceiver {
     }
 
     private void timerLogic() {
-        if (lastCnt > clients.size()) {
+        if (lastCnt < clients.size()) {
             stopTimer();
         } else {
-            if (lastCnt < clients.size()) {
+            if (lastCnt > clients.size()) {
                 stopTimer();
             }
             if (canStartTimer()) {
@@ -214,7 +214,10 @@ public class Room extends WebsocketReceiver {
     }
 
     private void startGame() {
+        timer.cancel();
         timer = null;
         System.out.println("Game started"); // TODO
+        Foyer.getFoyerInstance().removeRoom(this);
+        new Game(this.id, clients, player);
     }
 }
