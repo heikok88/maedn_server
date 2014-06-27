@@ -110,9 +110,8 @@ public class Room extends WebsocketReceiver {
     }
 
     private void sendToAllPlayer(Object o, Client client) {
-        Enumeration<Client> c = clients.elements();
-        while (c.hasMoreElements()) {
-            Client cl = c.nextElement();
+        for (int i = 0; i < clients.size(); i++) {
+            Client cl = clients.get(i);
             if (cl != client) {
                 cl.sendData(gson.toJson(o));
             }
@@ -227,6 +226,6 @@ public class Room extends WebsocketReceiver {
         timer = null;
         System.out.println("Game started"); // TODO
         Foyer.getFoyerInstance().removeRoom(this);
-        new Game(this.id, clients, player);
+        new Game(clients, player);
     }
 }

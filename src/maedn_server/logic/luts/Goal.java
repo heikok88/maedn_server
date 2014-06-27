@@ -1,12 +1,12 @@
-package maedn_server.logic;
+package maedn_server.logic.luts;
 
 import java.util.Arrays;
 
-public class Home extends Fields {
+public class Goal extends Fields {
 
     private static final int FIELDS = 4;
 
-    public Home(int id) {
+    public Goal(int id) {
         super(FIELDS);
         init(id);
     }
@@ -43,4 +43,12 @@ public class Home extends Fields {
         }
     }
 
+    public boolean canMove() {
+        for (int i = size(); i < figures.length; i++) {
+            if (figures[i] == null) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

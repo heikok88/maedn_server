@@ -1,4 +1,4 @@
-package maedn_server.logic;
+package maedn_server.logic.luts;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,6 +37,7 @@ public abstract class Fields {
 
     public void setFigure(int index, Figure f) {
         figures[index] = f;
+        f.setXY(getXY(index));
     }
 
     public boolean isFigure(int index) {
@@ -59,6 +60,16 @@ public abstract class Fields {
             }
         }
         return list;
+    }
+
+    public int size() {
+        int cnt = 0;
+        for (int i = 0; i < figures.length; i++) {
+            if (figures[i] != null) {
+                cnt++;
+            }
+        }
+        return cnt;
     }
 
 }

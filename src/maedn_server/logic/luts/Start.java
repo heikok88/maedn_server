@@ -1,15 +1,18 @@
-package maedn_server.logic;
+package maedn_server.logic.luts;
 
 import java.util.Arrays;
 import maedn_server.messages.server.Figure;
 
-public class Seat extends Fields {
+public class Start extends Fields {
 
     private static final int SEATS = 4;
 
-    public Seat(int id) {
+    public Start(int id, String nickname) {
         super(SEATS);
         init(id);
+        for (int i = 0; i < SEATS; i++) {
+            setFigure(i, new Figure(nickname));
+        }
     }
 
     private void init(int id) {
@@ -20,16 +23,16 @@ public class Seat extends Fields {
                 y = 0;
                 break;
             case 1:
-                x = 0;
-                y = 9;
+                x = 9;
+                y = 0;
                 break;
             case 2:
                 x = 9;
                 y = 9;
                 break;
             case 3:
-                x = 9;
-                y = 0;
+                x = 0;
+                y = 9;
                 break;
             default:
                 throw new IllegalArgumentException(
@@ -53,5 +56,4 @@ public class Seat extends Fields {
             }
         }
     }
-
 }

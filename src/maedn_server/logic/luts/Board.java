@@ -1,11 +1,13 @@
-package maedn_server.logic;
+package maedn_server.logic.luts;
 
 import java.util.Arrays;
 
 public class Board extends Fields{
 
-    public Board(int cnt) {
-        super(cnt);
+    private static final int FIELDS = 40;
+    
+    public Board() {
+        super(FIELDS);
         
         addPair(0, Arrays.asList(4, 0));
         addPair(1, Arrays.asList(4, 1));
