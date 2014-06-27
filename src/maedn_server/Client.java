@@ -5,7 +5,7 @@ import org.vertx.java.core.http.ServerWebSocket;
 
 public class Client {
 
-    private int me;
+    private final int me;
     private static int cnt = 0; // TODO : Only for debugging
     private WebsocketReceiver receiver;
     private final ServerWebSocket ws;

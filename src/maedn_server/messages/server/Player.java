@@ -6,8 +6,8 @@ public class Player {
     public String color;
     public boolean ready;
 
-    public Player(String nickname, String color) {
-        this(nickname, color, false);
+    public Player(String nickname) {
+        this(nickname, "", false);
     }
 
     public Player(String nickname, String color, boolean ready) {

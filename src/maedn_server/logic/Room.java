@@ -59,18 +59,22 @@ public class Room extends WebsocketReceiver {
             ret = true;
             clients.push(client);
             client.setReceiver(this);
-            player.push(new Player(nickname, colors[player.size()]));
+            player.push(new Player(nickname));
+            setColors();
             timerLogic();
         }
         return ret;
     }
 
-    private void removePlayer(Client client) {
+    private void removeClient(Client client) {
         int index = clients.indexOf(client);
         if (index != -1) {
             clients.remove(index);
             player.remove(index);
+            Foyer.getFoyerInstance().registerClient(client, true);
             if (clients.size() > 0) {
+                setColors();
+                notifyAllPlayer();
                 timerLogic();
             } else {
                 Foyer.getFoyerInstance().removeRoom(this);
@@ -153,11 +157,8 @@ public class Room extends WebsocketReceiver {
     }
 
     private void handleLeave(Client client) {
-        Foyer f = Foyer.getFoyerInstance();
-        this.removePlayer(client);
-        f.registerClient(client, true);
+        this.removeClient(client);
         client.sendData(gson.toJson(CommonMessages.newSimpleResponse("left")));
-        notifyAllPlayer();
     }
 
     private void handleReady(Client client) {
@@ -167,6 +168,14 @@ public class Room extends WebsocketReceiver {
             notifyPlayer(client);
             notifyAllPlayer(client);
             timerLogic();
+        }
+    }
+
+    private void setColors() {
+        int cnt = 0;
+        Enumeration<Player> p = player.elements();
+        while (p.hasMoreElements()) {
+            p.nextElement().color = colors[cnt++];
         }
     }
 
