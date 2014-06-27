@@ -51,9 +51,21 @@ public class Start extends Fields {
     public void setFigure(Figure figure) {
         for (int i = 0; i < figures.length; i++) {
             if (figures[i] == null) {
-                figures[i] = figure;
+                setFigure(i, figure);
                 break;
             }
         }
+    }
+    
+    public Figure getFigure() {
+        Figure f = null;
+        for (int i = 0; i < figures.length; i++) {
+            if (figures[i] != null) {
+                f = figures[i];
+                delFigure(i);
+                break;
+            }
+        }
+        return f;
     }
 }

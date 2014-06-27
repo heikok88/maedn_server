@@ -45,7 +45,7 @@ public class Game extends WebsocketReceiver {
 
         board = new Board();
 
-        sendToAllPlayer(ServerMessages.newMatchUpdateResponse(activePlayer(), getAllFigures()));
+        sendToAllPlayer(ServerMessages.newMatchUpdateResponse(activePlayerNickname(), getAllFigures()));
     }
 
     private void sendToAllPlayer(Object o) {
@@ -77,7 +77,7 @@ public class Game extends WebsocketReceiver {
         playerID = (playerID + 1) % player.size();
     }
 
-    private String activePlayer() {
+    private String activePlayerNickname() {
         return player.get(playerID).nickname;
     }
 
@@ -106,22 +106,26 @@ public class Game extends WebsocketReceiver {
     }
 
     private void handleRollDice(Client client) {
-        int index = clients.indexOf(client);
-        String nickname = (index != -1) ? player.get(index).nickname : null;
-        if (nickname != null) {
-            lastEyes = (lastEyes == 0) ? (int) (Math.random() * 6 + 1) : lastEyes;
-            client.sendData(gson.toJson(ServerMessages.newRollDiceResponse(
-                    nickname, lastEyes)));
-            sendToAllPlayer(ServerMessages.newRollDiceAction(
-                    nickname, lastEyes), client);
-            if (!moveAbleFigure()) {
-                if (lastEyes == 6) {
-                    cnt = 0;
-
-                } else {
-                    cnt++;
-                }
-                lastEyes = 0;
+        lastEyes = (lastEyes == 0) ? (int) (Math.random() * 6 + 1) : lastEyes;
+        client.sendData(gson.toJson(ServerMessages.newRollDiceResponse(
+                activePlayerNickname(), lastEyes)));
+        sendToAllPlayer(ServerMessages.newRollDiceAction(
+                activePlayerNickname(), lastEyes), client);
+        if (!moveAbleFigure()) {
+            if (lastEyes == 6) {
+                cnt = 0;
+                setFigureOnStart();
+                sendToAllPlayer(ServerMessages.newMatchUpdateAction(
+                        activePlayerNickname(), getAllFigures()));
+            } else {
+                cnt++;
+            }
+            lastEyes = 0;
+            if (cnt == 3) {
+                cnt = 0;
+                nextPlayer();
+                sendToAllPlayer(ServerMessages.newMatchUpdateAction(
+                        activePlayerNickname(), getAllFigures()));
             }
         }
     }
@@ -145,6 +149,19 @@ public class Game extends WebsocketReceiver {
             return false;
         }
         return true;
+    }
+
+    private int startPos() {
+        return playerID * 10;
+    }
+    
+    private int endPos() {
+        return (startPos() + 40 - 1) % 40;
+    }
+    
+    private void setFigureOnStart() {
+        Figure f = start.get(playerID).getFigure();
+        board.setFigure(startPos(), f);
     }
 
 }
