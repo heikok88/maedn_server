@@ -1,7 +1,5 @@
 package maedn_server;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.vertx.java.platform.Verticle;
 
 public class MaednServer extends Verticle {

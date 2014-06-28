@@ -1,6 +1,7 @@
 package maedn_server.logic.luts;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,8 +21,12 @@ public abstract class Fields {
         fields.put(index, xy);
     }
 
-    public Integer getIndex(List<Integer> xy) {
-        Integer index = null;
+    public int getIndex(int x, int y) {
+        return getIndex(Arrays.asList(x, y));
+    }
+
+    public int getIndex(List<Integer> xy) {
+        int index = -1;
         for (Map.Entry<Integer, List<Integer>> field : fields.entrySet()) {
             if (field.getValue().equals(xy)) {
                 index = field.getKey();
@@ -36,6 +41,7 @@ public abstract class Fields {
     }
 
     public void setFigure(int index, Figure f) {
+        delFigure(getIndex(f.x, f.y));
         figures[index] = f;
         f.setXY(getXY(index));
     }
@@ -45,7 +51,13 @@ public abstract class Fields {
     }
 
     public void delFigure(int index) {
-        figures[index] = null;
+        if (index != -1 && index < figures.length) {
+            figures[index] = null;
+        }
+    }
+
+    public Figure getFigure(int x, int y) {
+        return figures[getIndex(x, y)];
     }
 
     public Figure getFigure(int index) {

@@ -6,6 +6,7 @@ import maedn_server.messages.server.Figure;
 public class Start extends Fields {
 
     private static final int SEATS = 4;
+    private final String nickname;
 
     public Start(int id, String nickname) {
         super(SEATS);
@@ -13,6 +14,11 @@ public class Start extends Fields {
         for (int i = 0; i < SEATS; i++) {
             setFigure(i, new Figure(nickname));
         }
+        this.nickname = nickname;
+    }
+
+    public String getNickname() {
+        return nickname;
     }
 
     private void init(int id) {

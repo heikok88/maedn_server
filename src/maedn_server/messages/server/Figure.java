@@ -5,8 +5,8 @@ import java.util.List;
 public class Figure {
 
     public final String nickname;
-    public int x;
-    public int y;
+    public int x = -1;
+    public int y = -1;
 
     public Figure(String nickname) {
         this.nickname = nickname;

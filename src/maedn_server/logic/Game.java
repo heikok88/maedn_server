@@ -1,12 +1,13 @@
 package maedn_server.logic;
 
-import maedn_server.logic.luts.Goal;
-import maedn_server.logic.luts.Start;
-import maedn_server.logic.luts.Board;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 import maedn_server.Client;
+import maedn_server.logic.luts.Board;
+import maedn_server.logic.luts.Fields;
+import maedn_server.logic.luts.Goal;
+import maedn_server.logic.luts.Start;
 import maedn_server.messages.Action;
 import maedn_server.messages.CommonMessages;
 import maedn_server.messages.Response;
@@ -27,6 +28,7 @@ public class Game extends WebsocketReceiver {
     private int playerID = 0;
     private int lastEyes = 0;
     private int cnt = 0;
+    private boolean newFigure = false;
 
     public Game(Stack<Client> clients, Stack<Player> player) {
         this.clients = clients;
@@ -74,6 +76,7 @@ public class Game extends WebsocketReceiver {
     }
 
     private void nextPlayer() {
+        lastEyes = 0;
         playerID = (playerID + 1) % player.size();
     }
 
@@ -114,9 +117,7 @@ public class Game extends WebsocketReceiver {
         if (!moveAbleFigure()) {
             if (lastEyes == 6) {
                 cnt = 0;
-                setFigureOnStart();
-                sendToAllPlayer(ServerMessages.newMatchUpdateAction(
-                        activePlayerNickname(), getAllFigures()));
+                newFigure = setFigureOnStartPosition();
             } else {
                 cnt++;
             }
@@ -127,17 +128,30 @@ public class Game extends WebsocketReceiver {
                 sendToAllPlayer(ServerMessages.newMatchUpdateAction(
                         activePlayerNickname(), getAllFigures()));
             }
+        } else {
+            if (lastEyes == 6) {
+                newFigure = setFigureOnStartPosition();
+            }
         }
     }
 
     private void handleMove(Client client, Action<Move> move) {
         int player = clients.indexOf(client);
         if (player == playerID && lastEyes != 0) {
-
-        } else {
-            client.sendData(gson.toJson(CommonMessages.newMsgResponse(
-                    "error", "Illegal move!")));
+            if (moveFigure(move.payload)) {
+                if (lastEyes != 6) {
+                    nextPlayer();
+                }
+                List<Figure> l = getAllFigures();
+                client.sendData(gson.toJson(ServerMessages.
+                        newMatchUpdateResponse(activePlayerNickname(), l)));
+                sendToAllPlayer(ServerMessages.newMatchUpdateAction(
+                        activePlayerNickname(), l), client);
+                return;
+            }
         }
+        client.sendData(gson.toJson(CommonMessages.newMsgResponse(
+                "error", "Illegal move!")));
     }
 
     private boolean moveAbleFigure() {
@@ -154,14 +168,117 @@ public class Game extends WebsocketReceiver {
     private int startPos() {
         return playerID * 10;
     }
-    
+
+    private int startPosX() {
+        return board.getXY(startPos()).get(0);
+    }
+
+    private int startPosY() {
+        return board.getXY(startPos()).get(1);
+    }
+
     private int endPos() {
         return (startPos() + 40 - 1) % 40;
     }
-    
-    private void setFigureOnStart() {
+
+    private boolean setFigureOnStartPosition() {
+        boolean bool = false;
         Figure f = start.get(playerID).getFigure();
-        board.setFigure(startPos(), f);
+        if (f != null) {
+            RetClass ret = getFigure(startPosX(), startPosY());
+            if (!ret.own) {
+                if (ret.figure != null) {
+                    setFigureToStart(ret.figure);
+                }
+                board.setFigure(startPos(), f);
+                sendToAllPlayer(ServerMessages.newMatchUpdateAction(
+                        activePlayerNickname(), getAllFigures()));
+                bool = true;
+            } else {
+                start.get(playerID).setFigure(f);
+            }
+        }
+        return bool;
+    }
+
+    private void setFigureToStart(Figure f) {
+        String nick = f.nickname;
+        for (int i = 0; i < start.size(); i++) {
+            if (start.get(i).getNickname().equals(nick)) {
+                start.get(i).setFigure(f);
+                break;
+            }
+        }
+    }
+
+    private boolean moveFigure(Move move) {
+        return moveFigure(move.fromX, move.fromY, move.toX, move.toY);
+    }
+
+    private boolean moveFigure(int fromX, int fromY, int toX, int toY) {
+        RetClass rt1 = getFigure(fromX, fromY);
+        RetClass rt2 = getFigure(toX, toY);
+
+        Figure f1 = rt1.figure, f2 = rt2.figure;
+        Fields fi1 = rt1.field, fi2 = rt2.field;
+
+        if (rt1.own) {
+            if (!rt2.own) {
+                int i1 = fi1.getIndex(fromX, fromY);
+                if (!newFigure || (newFigure && i1 == startPos())) {
+                    newFigure = false;
+                    int i2 = fi2.getIndex(toX, toY);
+                    if (fi1 == fi2) {
+                        if (((i1 + lastEyes) % 40) == i2 && ((i1 < endPos()) ? i2 <= endPos() : true)) {
+                            fi2.setFigure(i2, f1);
+                            if (f2 != null) {
+                                setFigureToStart(f2);
+                            }
+                            return true;
+                        }
+                    } else {
+                        // TODO
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private class RetClass {
+
+        public final Figure figure;
+        public final Fields field;
+        public final boolean own;
+
+        public RetClass(Figure figure, Fields field, boolean own) {
+            this.figure = figure;
+            this.field = field;
+            this.own = own;
+        }
+    }
+
+    private RetClass getFigure(int x, int y) {
+        Figure figure = null;
+        Fields field = null;
+
+        int index = board.getIndex(x, y);
+        if (index != -1) {
+            field = board;
+        } else {
+            Goal g = goal.get(playerID);
+            index = g.getIndex(x, y);
+            if (index != -1) {
+                field = g;
+            }
+        }
+        if (field != null) {
+            figure = field.getFigure(index);
+            if (figure != null && figure.nickname.equals(activePlayerNickname())) {
+                return new RetClass(figure, field, true);
+            }
+        }
+        return new RetClass(figure, field, false);
     }
 
 }
