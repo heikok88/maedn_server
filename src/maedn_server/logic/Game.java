@@ -90,7 +90,7 @@ public class Game extends WebsocketReceiver {
             clients.remove(index);
             client.sendData(gson.toJson(CommonMessages.newSimpleResponse("left")));
             Foyer.getFoyerInstance().registerClient(client, true);
-            if (clients.size() > 0) {
+            if (clients.size() > 0) { // TODO
                 start.remove(index);
                 goal.remove(index);
                 board.removePlayerFigures(player.get(index).nickname);
@@ -100,7 +100,7 @@ public class Game extends WebsocketReceiver {
                 }
                 sendToAllPlayer(ServerMessages.newMatchUpdateAction(
                         activePlayerNickname(), getAllFigures()));
-            } 
+            }
         }
     }
 
@@ -136,7 +136,7 @@ public class Game extends WebsocketReceiver {
     }
 
     private void handleRollDice(Client client) {
-        lastEyes = (lastEyes == 0) ? (int) (Math.random() * 6 + 1) : lastEyes;
+        lastEyes = 6;//lastEyes = (lastEyes == 0) ? (int) (Math.random() * 6 + 1) : lastEyes;
         client.sendData(gson.toJson(ServerMessages.newRollDiceResponse(
                 activePlayerNickname(), lastEyes)));
         sendToAllPlayer(ServerMessages.newRollDiceAction(
@@ -157,7 +157,9 @@ public class Game extends WebsocketReceiver {
             }
         } else {
             if (lastEyes == 6) {
-                newFigure = setFigureOnStartPosition();
+                if (!newFigure) {
+                    newFigure = setFigureOnStartPosition();
+                }
             }
         }
     }
@@ -249,10 +251,16 @@ public class Game extends WebsocketReceiver {
         Figure f1 = rt1.figure, f2 = rt2.figure;
         Fields fi1 = rt1.field, fi2 = rt2.field;
 
+        List<Integer> xy = board.getXY(startPos() + lastEyes);
+        RetClass r3 = getFigure(xy.get(0), xy.get(1));
+
         if (rt1.own) {
             if (!rt2.own) {
                 int i1 = fi1.getIndex(fromX, fromY);
-                if (!newFigure || (newFigure && i1 == startPos())) {
+                boolean c1 = !newFigure;
+                boolean c2 = (newFigure && i1 == startPos());
+                boolean c3 = (newFigure && r3.own);
+                if (!newFigure || (newFigure && i1 == startPos()) || (newFigure && r3.own)) {
                     newFigure = false;
                     int i2 = fi2.getIndex(toX, toY);
                     if (fi1 == fi2) {
