@@ -136,7 +136,7 @@ public class Game extends WebsocketReceiver {
     }
 
     private void handleRollDice(Client client) {
-        lastEyes = 6;//lastEyes = (lastEyes == 0) ? (int) (Math.random() * 6 + 1) : lastEyes;
+        lastEyes = (lastEyes == 0) ? (int) (Math.random() * 6 + 1) : lastEyes;
         client.sendData(gson.toJson(ServerMessages.newRollDiceResponse(
                 activePlayerNickname(), lastEyes)));
         sendToAllPlayer(ServerMessages.newRollDiceAction(
@@ -257,10 +257,10 @@ public class Game extends WebsocketReceiver {
         if (rt1.own) {
             if (!rt2.own) {
                 int i1 = fi1.getIndex(fromX, fromY);
-                boolean c1 = !newFigure;
-                boolean c2 = (newFigure && i1 == startPos());
-                boolean c3 = (newFigure && r3.own);
-                if (!newFigure || (newFigure && i1 == startPos()) || (newFigure && r3.own)) {
+                boolean c1 = !newFigure; // normal move
+                boolean c2 = (newFigure && i1 == startPos()); // zugzwang
+                boolean c3 = (newFigure && r3.own); // cancel zugzwang
+                if (c1 || c2 || c3) {
                     newFigure = false;
                     int i2 = fi2.getIndex(toX, toY);
                     if (fi1 == fi2) {
