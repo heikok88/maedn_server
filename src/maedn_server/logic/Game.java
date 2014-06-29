@@ -165,8 +165,8 @@ public class Game extends WebsocketReceiver {
     }
 
     private void handleMove(Client client, Action<Move> move) {
-        int player = clients.indexOf(client);
-        if (player == playerID && lastEyes != 0) {
+        int id = clients.indexOf(client);
+        if (id == playerID && lastEyes != 0) {
             if (moveFigure(move.payload)) {
                 if (lastEyes != 6) {
                     nextPlayer();
@@ -259,11 +259,11 @@ public class Game extends WebsocketReceiver {
                 int i1 = fi1.getIndex(fromX, fromY);
                 boolean c1 = !newFigure; // normal move
                 boolean c2 = (newFigure && i1 == startPos()); // zugzwang
-                boolean c3 = (newFigure && r3.own); // cancel zugzwang
+                boolean c3 = (newFigure && r3.own); // cancels zugzwang
                 if (c1 || c2 || c3) {
                     newFigure = false;
                     int i2 = fi2.getIndex(toX, toY);
-                    if (fi1 == fi2) {
+                    if (fi1 == fi2) { // board to board or goal to goal
                         if (((i1 + lastEyes) % 40) == i2 && ((i1 < endPos()) ? i2 <= endPos() : true)) {
                             fi2.setFigure(i2, f1);
                             if (f2 != null) {
@@ -271,8 +271,13 @@ public class Game extends WebsocketReceiver {
                             }
                             return true;
                         }
-                    } else {
-                        // TODO
+                    } else { // board to goal
+                        if (fi2 != null) { // own goal
+                            if ((i1 + lastEyes == i2 + endPos() + 1) && (f2 == null)) {
+                                fi2.setFigure(i2, f1);
+                                return true;
+                            }
+                        }
                     }
                 }
             }

@@ -105,11 +105,11 @@ public class Room extends WebsocketReceiver {
         sendToAllPlayer(ac, client);
     }
 
-    private void sendToAllPlayer(Object o) {
+    private void sendToAllPlayer(Action o) {
         sendToAllPlayer(o, null);
     }
 
-    private void sendToAllPlayer(Object o, Client client) {
+    private void sendToAllPlayer(Action o, Client client) {
         for (int i = 0; i < clients.size(); i++) {
             Client cl = clients.get(i);
             if (cl != client) {
