@@ -84,11 +84,34 @@ public class Game extends WebsocketReceiver {
         return player.get(playerID).nickname;
     }
 
+    public void removeClient(Client client) {
+        int index = clients.indexOf(client);
+        if (index != -1) {
+            clients.remove(index);
+            client.sendData(gson.toJson(CommonMessages.newSimpleResponse("left")));
+            Foyer.getFoyerInstance().registerClient(client, true);
+            if (clients.size() > 0) {
+                start.remove(index);
+                goal.remove(index);
+                board.removePlayerFigures(player.get(index).nickname);
+                player.remove(index);
+                if (playerID == index) {
+                    nextPlayer();
+                }
+                sendToAllPlayer(ServerMessages.newMatchUpdateAction(
+                        activePlayerNickname(), getAllFigures()));
+            } 
+        }
+    }
+
     @Override
     public void reveiceData(Client client, String json) {
         if (isAction(json)) {
             Action action = gson.fromJson(json, Action.class);
             switch (action.action) {
+                case "leave":
+                    handleLeave(client);
+                    break;
                 case "rollDice":
                     handleRollDice(client);
                     break;
@@ -106,6 +129,10 @@ public class Game extends WebsocketReceiver {
                 // TODO: handle forbidden json object
             }
         }
+    }
+
+    private void handleLeave(Client client) {
+        removeClient(client);
     }
 
     private void handleRollDice(Client client) {

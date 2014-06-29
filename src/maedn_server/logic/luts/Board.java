@@ -53,5 +53,13 @@ public class Board extends Fields {
         addPair(38, Arrays.asList(0, 6));
         addPair(39, Arrays.asList(0, 5));
     }
+    
+    public void removePlayerFigures(String nickname) {
+        for (int i = 0; i < figures.length; i++) {
+            if (figures[i] != null && figures[i].nickname.equals(nickname)) {
+                figures[i] = null;
+            }
+        }
+    }
 
 }
