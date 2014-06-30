@@ -41,13 +41,23 @@ public abstract class Fields {
     }
 
     public void setFigure(int index, Figure f) {
-        delFigure(getIndex(f.x, f.y));
+        delFigure(f);
         figures[index] = f;
         f.setXY(getXY(index));
     }
 
     public boolean isFigure(int index) {
         return (figures[index] != null);
+    }
+    
+    public void delFigure(Figure f) {
+        if (figures != null) {
+            for (int i = 0; i < figures.length; i++) {
+                if (figures[i] == f) {
+                    figures[i] = null;
+                }
+            }
+        }
     }
 
     public void delFigure(int index) {

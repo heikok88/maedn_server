@@ -30,6 +30,8 @@ public class Game extends WebsocketReceiver {
     private int cnt = 0;
     private boolean newFigure = false;
 
+    private boolean debug = true;
+
     public Game(Stack<Client> clients, Stack<Player> player) {
         this.clients = clients;
         this.player = player;
@@ -75,9 +77,17 @@ public class Game extends WebsocketReceiver {
         return figures;
     }
 
-    private void nextPlayer() {
+    private void nextPlayer(boolean notify) {
+        nextPlayer(notify, null);
+    }
+
+    private void nextPlayer(boolean notify, Client client) {
         lastEyes = 0;
         playerID = (playerID + 1) % player.size();
+        if (notify) {
+            sendToAllPlayer(ServerMessages.newMatchUpdateAction(
+                    activePlayerNickname(), getAllFigures()), client);
+        }
     }
 
     private String activePlayerNickname() {
@@ -96,7 +106,9 @@ public class Game extends WebsocketReceiver {
                 board.removePlayerFigures(player.get(index).nickname);
                 player.remove(index);
                 if (playerID == index) {
-                    nextPlayer();
+                    if (lastEyes != 6) {
+                        nextPlayer(false);
+                    }
                 }
                 sendToAllPlayer(ServerMessages.newMatchUpdateAction(
                         activePlayerNickname(), getAllFigures()));
@@ -136,7 +148,11 @@ public class Game extends WebsocketReceiver {
     }
 
     private void handleRollDice(Client client) {
-        lastEyes = (lastEyes == 0) ? (int) (Math.random() * 6 + 1) : lastEyes;
+        if (debug) {
+            lastEyes = 6;
+        } else {
+            lastEyes = (lastEyes == 0) ? (int) (Math.random() * 6 + 1) : lastEyes;
+        }
         client.sendData(gson.toJson(ServerMessages.newRollDiceResponse(
                 activePlayerNickname(), lastEyes)));
         sendToAllPlayer(ServerMessages.newRollDiceAction(
@@ -151,15 +167,21 @@ public class Game extends WebsocketReceiver {
             lastEyes = 0;
             if (cnt == 3) {
                 cnt = 0;
-                nextPlayer();
-                sendToAllPlayer(ServerMessages.newMatchUpdateAction(
-                        activePlayerNickname(), getAllFigures()));
+                if (lastEyes != 6) {
+                    nextPlayer(true);
+                }
             }
         } else {
             if (lastEyes == 6) {
                 if (!newFigure) {
                     newFigure = setFigureOnStartPosition();
+                    if (newFigure) {
+                        lastEyes = 0;
+                    }
                 }
+            }
+            if (!newFigure && !canMove()) {
+                nextPlayer(true);
             }
         }
     }
@@ -169,13 +191,11 @@ public class Game extends WebsocketReceiver {
         if (id == playerID && lastEyes != 0) {
             if (moveFigure(move.payload)) {
                 if (lastEyes != 6) {
-                    nextPlayer();
+                    nextPlayer(true, client);
                 }
-                List<Figure> l = getAllFigures();
                 client.sendData(gson.toJson(ServerMessages.
-                        newMatchUpdateResponse(activePlayerNickname(), l)));
-                sendToAllPlayer(ServerMessages.newMatchUpdateAction(
-                        activePlayerNickname(), l), client);
+                        newMatchUpdateResponse(activePlayerNickname(),
+                                getAllFigures())));
                 return;
             }
         }
@@ -188,7 +208,20 @@ public class Game extends WebsocketReceiver {
         if (free == 0) {
             return false;
         }
-        if (goal.get(playerID).size() == free && !goal.get(playerID).canMove()) {
+        if (goal.get(playerID).size() == free
+                && !goal.get(playerID).moveAbleFigures()) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean canMove() {
+        int free = 4 - start.get(playerID).size();
+        if (free == 0) {
+            return false;
+        }
+        if (goal.get(playerID).size() == free
+                && !goal.get(playerID).canMove(lastEyes)) {
             return false;
         }
         return true;
@@ -264,19 +297,20 @@ public class Game extends WebsocketReceiver {
                     newFigure = false;
                     int i2 = fi2.getIndex(toX, toY);
                     if (fi1 == fi2) { // board to board or goal to goal
-                        if (((i1 + lastEyes) % 40) == i2 && ((i1 < endPos()) ? i2 <= endPos() : true)) {
+                        if (((i1 + lastEyes) % 40) == i2 && ((i1 <= endPos()) ? i2 <= endPos() && i1 < i2 : true)) {
                             fi2.setFigure(i2, f1);
                             if (f2 != null) {
                                 setFigureToStart(f2);
                             }
                             return true;
                         }
-                    } else { // board to goal
-                        if (fi2 != null) { // own goal
-                            if ((i1 + lastEyes == i2 + endPos() + 1) && (f2 == null)) {
-                                fi2.setFigure(i2, f1);
-                                return true;
-                            }
+                    } else if (fi1 instanceof Board && fi2 instanceof Goal) { // board to goal
+                        if ((i1 + lastEyes == i2 + endPos() + 1) && (f2 == null)) {
+                            fi1.delFigure(i1);
+                            fi2.setFigure(i2, f1);
+                        debug = false;
+                        lastEyes = 0;
+                            return true;
                         }
                     }
                 }

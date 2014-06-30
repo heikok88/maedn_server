@@ -43,12 +43,22 @@ public class Goal extends Fields {
         }
     }
 
-    public boolean canMove() {
-        for (int i = size(); i < figures.length; i++) {
-            if (figures[i] == null) {
+    public boolean canMove(int eyes) {
+        for (int i = 0; i < figures.length; i++) {
+            if (figures[i] != null && i + eyes < figures.length
+                    && figures[i + eyes] == null) {
                 return true;
             }
         }
         return false;
+    }
+
+    public boolean moveAbleFigures() {
+        for (int i = size(); i < figures.length; i++) {
+            if (figures[i] != null) {
+                return false;
+            }
+        }
+        return true;
     }
 }
