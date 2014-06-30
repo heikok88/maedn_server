@@ -1,6 +1,7 @@
 package maedn_server.logic;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 import maedn_server.Client;
@@ -19,20 +20,22 @@ import maedn_server.messages.server.ServerMessages;
 
 public class Game extends WebsocketReceiver {
 
+    private final int GAME_ID;
     private final Stack<Client> clients;
     private final Stack<Player> player;
     private final Stack<Start> start;
     private final Stack<Goal> goal;
+    private final List<String> done;
     private final Board board;
 
     private int playerID = 0;
     private int lastEyes = 0;
     private int cnt = 0;
     private boolean newFigure = false;
+    private int playerDone = -1;
 
-    private boolean debug = true;
-
-    public Game(Stack<Client> clients, Stack<Player> player) {
+    public Game(int id, Stack<Client> clients, Stack<Player> player) {
+        this.GAME_ID = id;
         this.clients = clients;
         this.player = player;
 
@@ -40,6 +43,7 @@ public class Game extends WebsocketReceiver {
 
         goal = new Stack<>();
         start = new Stack<>();
+        done = new LinkedList<>();
         for (int i = 0; i < player.size(); i++) {
             clients.get(i).setReceiver(this);
             clients.get(i).sendData(gson.toJson(ac));
@@ -82,8 +86,15 @@ public class Game extends WebsocketReceiver {
     }
 
     private void nextPlayer(boolean notify, Client client) {
+        int count = 0;
+
+        do {
+            playerID = (playerID + 1) % player.size();
+            count++;
+        } while (done.contains(activePlayerNickname()) && count < player.size());
+
         lastEyes = 0;
-        playerID = (playerID + 1) % player.size();
+        newFigure = false;
         if (notify) {
             sendToAllPlayer(ServerMessages.newMatchUpdateAction(
                     activePlayerNickname(), getAllFigures()), client);
@@ -110,8 +121,10 @@ public class Game extends WebsocketReceiver {
                         nextPlayer(false);
                     }
                 }
+                sendToAllPlayer(ServerMessages.newUpdatePlayersAction(GAME_ID, player));
                 sendToAllPlayer(ServerMessages.newMatchUpdateAction(
                         activePlayerNickname(), getAllFigures()));
+                matchDone();
             }
         }
     }
@@ -148,11 +161,7 @@ public class Game extends WebsocketReceiver {
     }
 
     private void handleRollDice(Client client) {
-        if (debug) {
-            lastEyes = 6;
-        } else {
-            lastEyes = (lastEyes == 0) ? (int) (Math.random() * 6 + 1) : lastEyes;
-        }
+        lastEyes = (lastEyes == 0) ? (int) (Math.random() * 6 + 1) : lastEyes;
         client.sendData(gson.toJson(ServerMessages.newRollDiceResponse(
                 activePlayerNickname(), lastEyes)));
         sendToAllPlayer(ServerMessages.newRollDiceAction(
@@ -196,6 +205,7 @@ public class Game extends WebsocketReceiver {
                 client.sendData(gson.toJson(ServerMessages.
                         newMatchUpdateResponse(activePlayerNickname(),
                                 getAllFigures())));
+                matchDone();
                 return;
             }
         }
@@ -308,8 +318,9 @@ public class Game extends WebsocketReceiver {
                         if ((i1 + lastEyes == i2 + endPos() + 1) && (f2 == null)) {
                             fi1.delFigure(i1);
                             fi2.setFigure(i2, f1);
-                        debug = false;
-                        lastEyes = 0;
+                            if (fi2.size() == 4) {
+                                playerDone = playerID;
+                            }
                             return true;
                         }
                     }
@@ -353,6 +364,35 @@ public class Game extends WebsocketReceiver {
             }
         }
         return new RetClass(figure, field, false);
+    }
+
+    public void playerDone() {
+        if (playerDone != -1) {
+            done.add(player.get(playerDone).nickname);
+            sendToAllPlayer(ServerMessages.newPlayerDoneAction(
+                    player.get(playerDone).nickname));
+            if (playerDone == playerID) {
+                nextPlayer(true);
+            }
+            playerDone = -1;
+        }
+    }
+
+    public void matchDone() {
+        int remainingPlayers = 0;
+        String tmp = "";
+
+        playerDone();
+        for (int i = 0; i < player.size(); i++) {
+            tmp = player.get(i).nickname;
+            if (!done.contains(tmp)) {
+                remainingPlayers++;
+            }
+        }
+        if (remainingPlayers < 2) {
+            done.add(tmp);
+            sendToAllPlayer(ServerMessages.newMatchDoneAction(done));
+        }
     }
 
 }

@@ -50,7 +50,7 @@ public class ServerMessages {
         return new Action<>("playerDone", new PlayerDone(nickname));
     }
     
-    public static Action<MatchDone> newPlayerDoneAction(List<String> nickname) {
-        return new Action<>("diceRolled", new MatchDone(nickname));
+    public static Action<MatchDone> newMatchDoneAction(List<String> nickname) {
+        return new Action<>("matchDone", new MatchDone(nickname));
     }
 }

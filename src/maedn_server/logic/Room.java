@@ -1,8 +1,6 @@
 package maedn_server.logic;
 
 import java.util.Enumeration;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Stack;
 import java.util.Timer;
 import maedn_server.Client;
@@ -85,13 +83,13 @@ public class Room extends WebsocketReceiver {
 
     public void notifyJoinedPlayer(Client client) {
         Response<GameParticipants> rs = ServerMessages.newJoinedResponse(
-                id, getPlayersList());
+                id, player);
         client.sendData(gson.toJson(rs));
     }
 
     public void notifyPlayer(Client client) {
         Response<GameParticipants> rs = ServerMessages.newUpdatePlayersResponse(
-                id, getPlayersList());
+                id, player);
         client.sendData(gson.toJson(rs));
     }
 
@@ -101,7 +99,7 @@ public class Room extends WebsocketReceiver {
 
     public void notifyAllPlayer(Client client) {
         Action<GameParticipants> ac = ServerMessages.newUpdatePlayersAction(
-                id, getPlayersList());
+                id, player);
         sendToAllPlayer(ac, client);
     }
 
@@ -118,14 +116,14 @@ public class Room extends WebsocketReceiver {
         }
     }
 
-    private List<Player> getPlayersList() {
-        List<Player> l = new LinkedList<>();
-        Enumeration<Player> p = player.elements();
-        while (p.hasMoreElements()) {
-            l.add(p.nextElement());
-        }
-        return l;
-    }
+//    private List<Player> getPlayersList() {
+//        List<Player> l = new LinkedList<>();
+//        Enumeration<Player> p = player.elements();
+//        while (p.hasMoreElements()) {
+//            l.add(p.nextElement());
+//        }
+//        return l;
+//    }
 
     public MatchNode getMatchNode() {
         return new MatchNode(id, clients.size());
@@ -226,6 +224,6 @@ public class Room extends WebsocketReceiver {
         timer = null;
         System.out.println("Game started"); // TODO
         Foyer.getFoyerInstance().removeRoom(this);
-        new Game(clients, player);
+        new Game(id, clients, player);
     }
 }
