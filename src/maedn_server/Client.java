@@ -13,7 +13,7 @@ public class Client {
     private final ServerWebSocket ws;
     private Timer timer = null;
     private PlayerTimeOut scheduledTask = null;
-    private static final long timeout = 1000L * 10;
+    private static final long timeout = (1000L * 120) ;
 
     public Client(ServerWebSocket ws) {
         this.ws = ws;
