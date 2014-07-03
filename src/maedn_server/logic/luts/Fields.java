@@ -49,7 +49,7 @@ public abstract class Fields {
     public boolean isFigure(int index) {
         return (figures[index] != null);
     }
-    
+
     public void delFigure(Figure f) {
         if (figures != null) {
             for (int i = 0; i < figures.length; i++) {
@@ -78,6 +78,16 @@ public abstract class Fields {
         List<Figure> list = new ArrayList<>();
         for (Figure f : figures) {
             if (f != null) {
+                list.add(f);
+            }
+        }
+        return list;
+    }
+
+    public List<Figure> getAllFigures(String nickname) {
+        List<Figure> list = new ArrayList<>();
+        for (Figure f : getAllFigures()) {
+            if (f.nickname.equals(nickname)) {
                 list.add(f);
             }
         }

@@ -1,7 +1,7 @@
 package maedn_server;
 
+import maedn_server.logic.PlayerTimeOut;
 import java.util.Timer;
-import java.util.TimerTask;
 import maedn_server.logic.WebsocketReceiver;
 import org.vertx.java.core.http.ServerWebSocket;
 

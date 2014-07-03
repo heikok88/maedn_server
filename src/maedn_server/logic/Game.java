@@ -153,7 +153,7 @@ public class Game extends WebsocketReceiver {
     public void reveiceData(Client client, String json) {
         if (isAction(json)) {
             Action action = gson.fromJson(json, Action.class);
-            //client.restartTimer();
+
             switch (action.action) {
                 case "leave":
                     handleLeave(client);
@@ -225,13 +225,14 @@ public class Game extends WebsocketReceiver {
             } else {
                 cnt++;
             }
-            lastEyes = 0;
+            
             if (cnt == 3) {
                 cnt = 0;
                 if (lastEyes != 6) {
                     nextPlayer(true);
                 }
             }
+			lastEyes = 0;
         } else {
             if (lastEyes == 6) {
                 if (!newFigure) {
@@ -242,7 +243,11 @@ public class Game extends WebsocketReceiver {
                 }
             }
             if (!newFigure && !canMove()) {
-                nextPlayer(true);
+                if (lastEyes != 6) {
+                    nextPlayer(true);
+                } else {
+                    lastEyes = 0;
+                }
             }
         }
     }
@@ -252,13 +257,15 @@ public class Game extends WebsocketReceiver {
         if (id == playerID && lastEyes != 0) {
             if (moveFigure(move.payload)) {
                 if (lastEyes != 6) {
-                    nextPlayer(true, client);
+                    nextPlayer(false);
                 }
                 lastEyes = 0;
 
                 client.sendData(gson.toJson(ServerMessages.
                         newMatchUpdateResponse(activePlayerNickname(),
                                 getAllFigures())));
+                sendToAllPlayer(ServerMessages.newMatchUpdateAction(
+                        activePlayerNickname(), getAllFigures()), client);
                 matchDone();
                 return;
             }
@@ -280,15 +287,42 @@ public class Game extends WebsocketReceiver {
     }
 
     private boolean canMove() {
+        boolean canMove = false;
+        // all figures on start?
         int free = 4 - start.get(playerID).size();
-        if (free == 0) {
-            return false;
+        if (free > 0) {
+            // test figures in goal
+            if (goal.get(playerID).size() > 0) {
+                canMove = goal.get(playerID).canMove(lastEyes);
+            }
+            // test remaining figures on board if necessary
+            if (!canMove) {
+                String nick = activePlayerNickname();
+                int i1, i2;
+                Figure to = null;
+                boolean found;
+                for (Figure f : board.getAllFigures(nick)) {
+                    found = false;
+                    i1 = board.getIndex(f.x, f.y);
+                    i2 = i1 + lastEyes;
+                    if (b2bCondition(i1, i2)) {     // board/goal to board/goal
+                        to = board.getFigure(i2);
+                        found = true;
+                    } else {                        // board to goal
+                        i2 = (i2 - endPos()) - 1;
+                        if (i2 < 4) {
+                            to = goal.get(playerID).getFigure(i2);
+                            found = true;
+                        }
+                    }
+                    if (found && (to == null || (to != null && !to.nickname.equals(nick)))) {
+                        canMove = true;
+                        break;
+                    }
+                }
+            }
         }
-        if (goal.get(playerID).size() == free
-                && !goal.get(playerID).canMove(lastEyes)) {
-            return false;
-        }
-        return true;
+        return canMove;
     }
 
     private int startPos() {
@@ -337,6 +371,13 @@ public class Game extends WebsocketReceiver {
         }
     }
 
+    private boolean b2bCondition(int i1, int i2) {
+        return ((i1 + lastEyes) % 40) == i2 && ((i1 <= endPos()) ? i2 <= endPos() && i1 < i2 : true);
+    }
+
+    private boolean b2gCondition(int i1, int i2, Figure f) {
+        return ((i1 + lastEyes == i2 + endPos() + 1) && (f == null));
+    }
     private boolean moveFigure(Move move) {
         return moveFigure(move.fromX, move.fromY, move.toX, move.toY);
     }
@@ -361,7 +402,7 @@ public class Game extends WebsocketReceiver {
                     newFigure = false;
                     int i2 = fi2.getIndex(toX, toY);
                     if (fi1 == fi2) { // board to board or goal to goal
-                        if (((i1 + lastEyes) % 40) == i2 && ((i1 <= endPos()) ? i2 <= endPos() && i1 < i2 : true)) {
+						if (b2bCondition(i1, i2)) {
                             fi2.setFigure(i2, f1);
                             if (f2 != null) {
                                 setFigureToStart(f2);
@@ -369,7 +410,7 @@ public class Game extends WebsocketReceiver {
                             return true;
                         }
                     } else if (fi1 instanceof Board && fi2 instanceof Goal) { // board to goal
-                        if ((i1 + lastEyes == i2 + endPos() + 1) && (f2 == null)) {
+                        if (b2gCondition(i1, i2, f2)) {
                             fi1.delFigure(i1);
                             fi2.setFigure(i2, f1);
                             if (fi2.size() == 4) {
@@ -434,17 +475,18 @@ public class Game extends WebsocketReceiver {
 
     public void matchDone() {
         int remainingPlayers = 0;
-        String tmp = "";
+        String tmp = "", last = "";
 
         playerDone();
         for (int i = 0; i < player.size(); i++) {
             tmp = player.get(i).nickname;
             if (!done.contains(tmp)) {
                 remainingPlayers++;
+                last = tmp;
             }
         }
         if (remainingPlayers < 2) {
-            done.add(tmp);
+            done.add(last);
             sendToAllPlayer(ServerMessages.newMatchDoneAction(done));
         }
     }
