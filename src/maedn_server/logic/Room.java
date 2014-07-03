@@ -21,6 +21,8 @@ public class Room extends WebsocketReceiver {
     private final int TIME = 10;
     private Timer timer;
     private int lastCnt = 0;
+    private final ResponseManager responseManager = new ResponseManager(this);
+    private static final long timeout = (1000L * 15);
 
     public Room(int id) {
         this.id = id;
@@ -54,6 +56,7 @@ public class Room extends WebsocketReceiver {
     public boolean addPlayer(Client client, String nickname) {
         boolean ret = false;
         if (clients.size() < 4) {
+            client.startTimer();
             ret = true;
             clients.push(client);
             client.setReceiver(this);
@@ -64,7 +67,8 @@ public class Room extends WebsocketReceiver {
         return ret;
     }
 
-    private void removeClient(Client client) {
+    @Override
+    public void removeClient(Client client) {
         int index = clients.indexOf(client);
         if (index != -1) {
             clients.remove(index);
@@ -111,6 +115,7 @@ public class Room extends WebsocketReceiver {
         for (int i = 0; i < clients.size(); i++) {
             Client cl = clients.get(i);
             if (cl != client) {
+                responseManager.addTask(cl, o);
                 cl.sendData(gson.toJson(o));
             }
         }
@@ -124,7 +129,6 @@ public class Room extends WebsocketReceiver {
 //        }
 //        return l;
 //    }
-
     public MatchNode getMatchNode() {
         return new MatchNode(id, clients.size());
     }
@@ -132,12 +136,16 @@ public class Room extends WebsocketReceiver {
     @Override
     public void reveiceData(Client client, String json) {
         if (isAction(json)) {
+            //client.restartTimer();
             Action action = gson.fromJson(json, Action.class);
             switch (action.action) {
                 case "leave":
+                     client.stopTimer();
                     handleLeave(client);
+                   
                     break;
                 case "ready":
+                    client.stopTimer();
                     handleReady(client);
                     break;
                 default:
@@ -147,6 +155,17 @@ public class Room extends WebsocketReceiver {
             // TODO
             Response response = gson.fromJson(json, Response.class);
             switch (response.response) {
+                case "playersUpdated":
+                    responseManager.attendResponse(client, "playersUpdated");
+                    break;
+                case "timerStarted":
+                    System.out.println("Get Response: timerStarted");
+                    responseManager.attendResponse(client, "timerStarted");
+                    break;
+                case "timerAborted":
+                    System.out.println("Get Response: timerAborted");
+                    responseManager.attendResponse(client, "timerAborted");
+                    break;
                 default:
                 // TODO: handle forbidden json object
             }

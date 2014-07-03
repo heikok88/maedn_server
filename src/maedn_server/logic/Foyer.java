@@ -25,7 +25,8 @@ public class Foyer extends WebsocketReceiver {
         }
         return singleton;
     }
-    
+
+  
     private class Connected {
         private Connected(boolean con) {
             this.connected = con;
@@ -53,7 +54,8 @@ public class Foyer extends WebsocketReceiver {
         client.setReceiver(this);
     }
     
-    public void deregisterClient(Client client) {
+    @Override
+    public void removeClient(Client client) {
         clients.remove(client);
     }
     
@@ -127,7 +129,7 @@ public class Foyer extends WebsocketReceiver {
             if (!r.isFull()) {
                 if (r.isNicknameOk(join.payload.nickname)) {
                     addClientToRoom(client, r, join.payload.nickname);
-                    deregisterClient(client);
+                    removeClient(client);
                 } else {
                     // nickname in use
                     client.sendData(gson.toJson(
@@ -152,7 +154,7 @@ public class Foyer extends WebsocketReceiver {
         Room r = new Room(cnt);
         addRoom(r);
         addClientToRoom(client, r, create.payload.nickname);
-        deregisterClient(client);
+        removeClient(client);
     }
 
     private void addClientToRoom(Client client, Room r, String nickname) {

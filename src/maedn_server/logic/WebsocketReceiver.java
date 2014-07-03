@@ -11,7 +11,9 @@ public abstract class WebsocketReceiver {
     protected Gson gson = new Gson();
     
     public abstract void reveiceData(Client client, String json);
-
+    
+    public abstract void removeClient(Client client);
+    
     private boolean isMsgType(String json, String msgType) {
         Type type = new TypeToken<Map<String, Object>>() {
         }.getType();

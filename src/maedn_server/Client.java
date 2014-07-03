@@ -1,14 +1,19 @@
 package maedn_server;
 
+import java.util.Timer;
+import java.util.TimerTask;
 import maedn_server.logic.WebsocketReceiver;
 import org.vertx.java.core.http.ServerWebSocket;
 
 public class Client {
 
-    private final int me;
+    public final int me;
     private static int cnt = 0; // TODO : Only for debugging
     private WebsocketReceiver receiver;
     private final ServerWebSocket ws;
+    private Timer timer = null;
+    private PlayerTimeOut scheduledTask = null;
+    private static final long timeout = 1000L * 10;
 
     public Client(ServerWebSocket ws) {
         this.ws = ws;
@@ -22,7 +27,7 @@ public class Client {
         }
     }
 
-    public void sendData(String data) {
+     public void sendData(String data) {
         try {
             ws.writeTextFrame(data);
             System.out.println("Server send (" + me + "): " + data); // TODO: remove, only for debugging
@@ -35,4 +40,38 @@ public class Client {
         this.receiver = receiver;
     }
 
+    public void startTimer() {
+        this.scheduledTask = new PlayerTimeOut(this);
+        timer = new Timer();
+        System.out.println("--------------------------------------------------------------------------------------------");
+        System.out.println("Client: " + this.me + " start Timer " + this.timer + " with Task: " + this.scheduledTask);
+        System.out.println("--------------------------------------------------------------------------------------------");
+        this.timer.schedule(scheduledTask, timeout);
+    }
+
+    public void restartTimer() {
+        System.out.println("---------------------------------------------------------------------------------------------");
+        System.out.println("Client: " + this.me + " stop Timer " + this.timer + " with Task: " + this.scheduledTask);
+        System.out.println("Rest Time: " + (System.currentTimeMillis() - scheduledTask.scheduledExecutionTime()));
+        System.out.println("---------------------------------------------------------------------------------------------");
+        timer.cancel();
+        startTimer();
+    }
+
+    public void stopTimer() {
+        System.out.println("---------------------------------------------------------------------------------------------");
+        System.out.println("Client: " + this.me + " stop Timer " + this.timer + " with Task: " + this.scheduledTask);
+        System.out.println("---------------------------------------------------------------------------------------------");
+        if (timer != null) {
+            this.timer.cancel();
+        }
+    }
+
+    public Timer getTimer() {
+        return timer;
+    }
+
+    public WebsocketReceiver getReceiver() {
+        return this.receiver;
+    }
 }

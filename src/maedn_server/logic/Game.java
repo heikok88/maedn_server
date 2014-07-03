@@ -27,12 +27,14 @@ public class Game extends WebsocketReceiver {
     private final Stack<Goal> goal;
     private final List<String> done;
     private final Board board;
+    private final ResponseManager responseManager = new ResponseManager(this);
 
     private int playerID = 0;
     private int lastEyes = 0;
     private int cnt = 0;
     private boolean newFigure = false;
     private int playerDone = -1;
+    private static final long timeout = (1000L * 60);
 
     public Game(int id, Stack<Client> clients, Stack<Player> player) {
         this.GAME_ID = id;
@@ -44,16 +46,18 @@ public class Game extends WebsocketReceiver {
         goal = new Stack<>();
         start = new Stack<>();
         done = new LinkedList<>();
+
         for (int i = 0; i < player.size(); i++) {
             clients.get(i).setReceiver(this);
             clients.get(i).sendData(gson.toJson(ac));
+            responseManager.addTask(clients.get(i), ac);
             goal.push(new Goal(i));
             start.push(new Start(i, player.get(i).nickname));
         }
-
         board = new Board();
 
         sendToAllPlayer(ServerMessages.newMatchUpdateResponse(activePlayerNickname(), getAllFigures()));
+        startGameTimer(clients.get(0));
     }
 
     private void sendToAllPlayer(Object o) {
@@ -64,6 +68,10 @@ public class Game extends WebsocketReceiver {
         for (int i = 0; i < clients.size(); i++) {
             Client cl = clients.get(i);
             if (client != cl) {
+                if (o instanceof Action) {
+                    responseManager.addTask(cl, (Action) o);
+                } 
+
                 cl.sendData(gson.toJson(o));
             }
         }
@@ -88,13 +96,26 @@ public class Game extends WebsocketReceiver {
     private void nextPlayer(boolean notify, Client client) {
         int count = 0;
 
+        if (playerID < clients.size()) {
+            Client c = clients.get(playerID);
+            if (c != null) {
+                c.stopTimer();
+            }
+        }
+
         do {
-            playerID = (playerID + 1) % player.size();
+            playerID += 1;
+            if (playerID >= player.size()) {
+                playerID = 0;
+            }
             count++;
         } while (done.contains(activePlayerNickname()) && count < player.size());
 
         lastEyes = 0;
         newFigure = false;
+
+        clients.get(playerID).startTimer();
+
         if (notify) {
             sendToAllPlayer(ServerMessages.newMatchUpdateAction(
                     activePlayerNickname(), getAllFigures()), client);
@@ -105,6 +126,7 @@ public class Game extends WebsocketReceiver {
         return player.get(playerID).nickname;
     }
 
+    @Override
     public void removeClient(Client client) {
         int index = clients.indexOf(client);
         if (index != -1) {
@@ -117,9 +139,7 @@ public class Game extends WebsocketReceiver {
                 board.removePlayerFigures(player.get(index).nickname);
                 player.remove(index);
                 if (playerID == index) {
-                    if (lastEyes != 6) {
-                        nextPlayer(false);
-                    }
+                    nextPlayer(false);
                 }
                 sendToAllPlayer(ServerMessages.newUpdatePlayersAction(GAME_ID, player));
                 sendToAllPlayer(ServerMessages.newMatchUpdateAction(
@@ -133,14 +153,17 @@ public class Game extends WebsocketReceiver {
     public void reveiceData(Client client, String json) {
         if (isAction(json)) {
             Action action = gson.fromJson(json, Action.class);
+            //client.restartTimer();
             switch (action.action) {
                 case "leave":
                     handleLeave(client);
                     break;
                 case "rollDice":
+                    startGameTimer(client);
                     handleRollDice(client);
                     break;
                 case "move":
+                    startGameTimer(client);
                     handleMove(client, gson.fromJson(json, ClientMessages.getMoveType()));
                     break;
                 default:
@@ -150,6 +173,23 @@ public class Game extends WebsocketReceiver {
             // TODO
             Response response = gson.fromJson(json, Response.class);
             switch (response.response) {
+                case "playersUpdated":
+                    responseManager.attendResponse(client, "playersUpdated");
+                case "matchStarted":
+                    responseManager.attendResponse(client, "matchStarted");
+                    break;
+                case "matchUpdated":
+                    responseManager.attendResponse(client, "matchUpdated");
+                    break;
+                case "diceRolled":
+                    responseManager.attendResponse(client, "diceRolled");
+                    break;
+                case "playerDone":
+                    responseManager.attendResponse(client, "playerDone");
+                    break;
+                case "matchDone":
+                    responseManager.attendResponse(client, "matchDone");
+                    break;
                 default:
                 // TODO: handle forbidden json object
             }
@@ -157,7 +197,19 @@ public class Game extends WebsocketReceiver {
     }
 
     private void handleLeave(Client client) {
+        client.stopTimer();
         removeClient(client);
+    }
+
+    private void startGameTimer(Client client) {
+        int index = clients.indexOf(client);
+        if (index != 1 && index == playerID) {
+            if (client.getTimer() == null) {
+                client.startTimer();
+            } else {
+                client.restartTimer();
+            }
+        }
     }
 
     private void handleRollDice(Client client) {
@@ -202,6 +254,8 @@ public class Game extends WebsocketReceiver {
                 if (lastEyes != 6) {
                     nextPlayer(true, client);
                 }
+                lastEyes = 0;
+
                 client.sendData(gson.toJson(ServerMessages.
                         newMatchUpdateResponse(activePlayerNickname(),
                                 getAllFigures())));
